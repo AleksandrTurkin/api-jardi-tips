@@ -1,8 +1,0 @@
-<Solution>
-  <Project Path="../JardiTips.Application/JardiTips.Application.csproj" />
-  <Project Path="../JardiTips.Domain/JardiTips.Domain.csproj" />
-  <Project Path="../JardiTips.Infrastructure/JardiTips.Infrastructure.csproj" />
-  <Project Path="JardiTips.WebApi.AppHost/JardiTips.WebApi.AppHost.csproj" />
-  <Project Path="JardiTips.WebApi.ServiceDefaults/JardiTips.WebApi.ServiceDefaults.csproj" />
-  <Project Path="JardiTips.WebApi/JardiTips.WebApi.csproj" />
-</Solution>
