@@ -1,4 +1,6 @@
-﻿namespace JardiTips.Domain.Entities;
+﻿using JardiTips.Domain.Enums;
+
+namespace JardiTips.Domain.Entities;
 
 public class CategoryEntity
 {

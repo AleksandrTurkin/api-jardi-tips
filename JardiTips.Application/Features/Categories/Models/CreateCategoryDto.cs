@@ -1,4 +1,4 @@
-﻿using JardiTips.Domain;
+﻿using JardiTips.Domain.Enums;
 
 namespace JardiTips.Application.Features.Categories.Models
 {

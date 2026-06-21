@@ -1,7 +1,8 @@
 ﻿using JardiTips.WebApi.Endpoints.Base;
-using System.Reflection;
+using JardiTips.WebApi.ExceptionHandlers;
 using JardiTips.WebApi.Extensions;
 using JardiTips.WebApi.Swagger;
+using System.Reflection;
 
 namespace JardiTips.WebApi;
 
@@ -9,6 +10,9 @@ public static class AppConfiguration
 {
     public static void Add(this WebApplicationBuilder builder)
     {
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddProblemDetails();
+
         builder.AddServiceDefaults();
         builder.Services.AddOpenApi();
 
@@ -45,6 +49,8 @@ public static class AppConfiguration
 
         app.UseCors("AllowAll");
         app.UseHttpsRedirection();
+        
+        app.UseExceptionHandler();
 
         app.InitializeDbIfNotExists();
     }

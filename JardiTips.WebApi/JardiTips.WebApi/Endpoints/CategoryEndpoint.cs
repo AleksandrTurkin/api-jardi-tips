@@ -1,6 +1,7 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.Features.Categories;
 using JardiTips.Application.Features.Categories.Models;
+using JardiTips.Domain.Common;
 using JardiTips.WebApi.Endpoints.Base;
 using JardiTips.WebApi.Extensions;
 
@@ -10,11 +11,11 @@ namespace JardiTips.WebApi.Endpoints
     {
         public void Register(IServiceCollection services)
         {
-            services.AddScoped<ICommandHandler<CreateCategoryCommand, Guid>, CreateCategoryCommandHandler>();
-            services.AddScoped<IQueryHandler<GetCategoryByIdQuery, CategoryDto>, GetCategoryByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<GetCategoriesQuery, List<CategoryDto>>, GetCategoriesQueryHandler>();
-            services.AddScoped<ICommandHandler<UpdateCategoryCommand, bool>, UpdateCategoryCommandHandler>();
-            services.AddScoped<ICommandHandler<DeleteCategoryCommand, bool>, DeleteCategoryCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateCategoryCommand, Result<Guid>>, CreateCategoryCommandHandler>();
+            services.AddScoped<IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>, GetCategoryByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<GetCategoriesQuery, Result<List<CategoryDto>>>, GetCategoriesQueryHandler>();
+            services.AddScoped<ICommandHandler<UpdateCategoryCommand, Result>, UpdateCategoryCommandHandler>();
+            services.AddScoped<ICommandHandler<DeleteCategoryCommand, Result>, DeleteCategoryCommandHandler>();
         }
 
         public void Map(IEndpointRouteBuilder builder)

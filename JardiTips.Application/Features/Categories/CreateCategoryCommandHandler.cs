@@ -1,15 +1,16 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.DataAccess;
 using JardiTips.Application.Features.Categories.Models;
+using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
 
 namespace JardiTips.Application.Features.Categories
 {
     public record CreateCategoryCommand(CreateCategoryDto Category);
 
-    public class CreateCategoryCommandHandler(IUnitOfWork unitOfWork) : ICommandHandler<CreateCategoryCommand, Guid>
+    public class CreateCategoryCommandHandler(IUnitOfWork unitOfWork) : ICommandHandler<CreateCategoryCommand, Result<Guid>>
     {
-        public async Task<Guid> HandleAsync(CreateCategoryCommand command, CancellationToken ct = default)
+        public async Task<Result<Guid>> HandleAsync(CreateCategoryCommand command, CancellationToken ct = default)
         {
             var repository = unitOfWork.Repository<CategoryEntity>();
             var category = Map(command);

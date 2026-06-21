@@ -1,21 +1,23 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.DataAccess;
 using JardiTips.Application.Features.Categories.Models;
+using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
+using JardiTips.Domain.Enums;
 
 namespace JardiTips.Application.Features.Categories
 {
     public record GetCategoryByIdQuery(Guid Id);
 
-    public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork) : IQueryHandler<GetCategoryByIdQuery, CategoryDto>
+    public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork) : IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>
     {
-        public async Task<CategoryDto> HandleAsync(GetCategoryByIdQuery query, CancellationToken ct = default)
+        public async Task<Result<CategoryDto>> HandleAsync(GetCategoryByIdQuery query, CancellationToken ct = default)
         {
             var repository = unitOfWork.Repository<CategoryEntity>();
             var category = await repository.GetByIdAsync(query.Id, ct);
 
             if (category == null)
-                throw new Exception($"Category with Id {query.Id} not found.");
+                return new ErrorDetail("Category.NotFound", $"Category with Id {query.Id} not found.", ErrorType.NotFound);
             
             return Map(category);
         }

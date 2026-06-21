@@ -1,4 +1,4 @@
-﻿namespace JardiTips.Domain;
+﻿namespace JardiTips.Domain.Enums;
 
 public enum CategoryType
 {

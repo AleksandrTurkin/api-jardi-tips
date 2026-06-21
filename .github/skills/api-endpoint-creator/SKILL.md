@@ -14,6 +14,7 @@ This skill creates endpoint classes that:
 - Implement `IEndpoint`.
 - Register command/query handler services.
 - Map HTTP routes through `EndpointMapExtensions`.
+- Use `Result` and `Result<T>` handler contracts compatible with HTTP result conversion.
 
 ## Scope
 Responsible area:
@@ -60,14 +61,15 @@ All generated endpoints must:
 5. Add required `using` statements:
 - `JardiTips.Application.Base`
 - Feature namespace and feature `.Models` namespace
+- `JardiTips.Domain.Common`
 - `JardiTips.WebApi.Endpoints.Base`
 - `JardiTips.WebApi.Extensions`
 6. Implement `Register` method:
-- Register create command handler (`ICommandHandler<..., Guid>`).
-- Register get-by-id query handler (`IQueryHandler<..., Dto>`).
-- Register get-list query handler (`IQueryHandler<..., List<Dto>>`).
-- Register update command handler (`ICommandHandler<..., bool>`).
-- Register delete command handler (`ICommandHandler<..., bool>`).
+- Register create command handler (`ICommandHandler<..., Result<Guid>>`).
+- Register get-by-id query handler (`IQueryHandler<..., Result<Dto>>`).
+- Register get-list query handler (`IQueryHandler<..., Result<List<Dto>>>`).
+- Register update command handler (`ICommandHandler<..., Result>`).
+- Register delete command handler (`ICommandHandler<..., Result>`).
 7. Implement `Map` method:
 - Create group with `builder.MapGroup("/<EntityRoute>").WithTags("<EntityName>")`.
 - Map create via `MapPostCommand<TRequest, TDto>`.
@@ -81,11 +83,11 @@ All generated endpoints must:
 
 ## Handler Registration Rules
 Use explicit registration pattern:
-- `services.AddScoped<ICommandHandler<TCommand, Guid>, TCreateHandler>();`
-- `services.AddScoped<IQueryHandler<TQueryById, TDto>, TGetByIdHandler>();`
-- `services.AddScoped<IQueryHandler<TListQuery, List<TDto>>, TGetListHandler>();`
-- `services.AddScoped<ICommandHandler<TUpdateCommand, bool>, TUpdateHandler>();`
-- `services.AddScoped<ICommandHandler<TDeleteCommand, bool>, TDeleteHandler>();`
+- `services.AddScoped<ICommandHandler<TCommand, Result<Guid>>, TCreateHandler>();`
+- `services.AddScoped<IQueryHandler<TQueryById, Result<TDto>>, TGetByIdHandler>();`
+- `services.AddScoped<IQueryHandler<TListQuery, Result<List<TDto>>>, TGetListHandler>();`
+- `services.AddScoped<ICommandHandler<TUpdateCommand, Result>, TUpdateHandler>();`
+- `services.AddScoped<ICommandHandler<TDeleteCommand, Result>, TDeleteHandler>();`
 
 ## Route Mapping Rules
 Use extension mapping methods from `EndpointMapExtensions` only:

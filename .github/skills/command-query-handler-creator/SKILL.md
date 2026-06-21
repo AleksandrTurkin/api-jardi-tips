@@ -63,6 +63,14 @@ Example for `User` and `Users`:
 - All query handlers must implement `IQueryHandler<TQuery, TResult>` from `JardiTips.Application/Base/IQueryHandler.cs`.
 - All command handlers must implement `ICommandHandler<TCommand, TResult>` from `JardiTips.Application/Base/ICommandHandler.cs`.
 
+## Result Pattern Rules (Mandatory)
+- All handler result types must use `JardiTips.Domain.Common.Result` wrappers.
+- Create command handler returns `Result<Guid>`.
+- Get-by-id query handler returns `Result<<EntityName>Dto>`.
+- Get-list query handler returns `Result<List<<EntityName>Dto>>`.
+- Update and delete command handlers return `Result`.
+- Validation/not-found paths should return domain error details instead of primitive failure flags.
+
 ## Repository Usage in Handlers (Mandatory)
 Use repository access through Unit of Work inside every handler.
 
@@ -87,7 +95,7 @@ Usage expectations by handler type:
 5. Ensure `Models` folder and DTOs exist if needed by handler contracts.
 6. Create command/query record types and handler classes in each file.
 7. Inject `IUnitOfWork` and use repository access against `<EntityName>Entity`.
-8. Add mapping methods between entity and DTO where needed.
+8. Add mapping methods between entity and DTO where needed, and return mapped values through `Result` wrappers.
 9. Build the solution and fix only issues introduced by this run.
 10. Summarize created files, reused DTOs, and new DTOs.
 
@@ -131,6 +139,7 @@ Required DTO coverage for full feature generation:
 - Exactly 5 handlers exist for the feature.
 - Query handlers implement `IQueryHandler`.
 - Command handlers implement `ICommandHandler`.
+- Handler return contracts follow the Result Pattern (`Result`/`Result<T>`).
 - DTO usage is consistent and compiles.
 - All required DTOs for create, update, item response, and list filter are present.
 - No unrelated files changed.

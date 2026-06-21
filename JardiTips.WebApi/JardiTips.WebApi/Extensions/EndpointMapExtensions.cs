@@ -1,4 +1,5 @@
 ﻿using JardiTips.Application.Base;
+using JardiTips.Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,13 +12,13 @@ public static class EndpointMapExtensions
         => builder.MapPost(pattern,
             [AllowAnonymous] async (
                 [FromBody] TDto dto,
-                [FromServices] ICommandHandler<TRequest, Guid> handler,
+                [FromServices] ICommandHandler<TRequest, Result<Guid>> handler,
                 CancellationToken cancellationToken) =>
             {
                 var request = create(dto);
-                var id = await handler.HandleAsync(request, cancellationToken);
-                return Results.Created($"/{id}", id);
-        });
+                var result = await handler.HandleAsync(request, cancellationToken);
+                return result.ToHttpResult();
+            });
 
     public static RouteHandlerBuilder MapGetByIdQuery<TRequest, TResponse, TKey>(this IEndpointRouteBuilder builder, string pattern, Func<TKey, TRequest> create)
         where TRequest : class
@@ -25,12 +26,12 @@ public static class EndpointMapExtensions
         => builder.MapGet(pattern,
             [AllowAnonymous] async (
                 TKey id,
-                [FromServices] IQueryHandler<TRequest, TResponse> handler,
+                [FromServices] IQueryHandler<TRequest, Result<TResponse>> handler,
                 CancellationToken cancellationToken) =>
             {
                 var request = create(id);
                 var result = await handler.HandleAsync(request, cancellationToken);
-                return Results.Ok(result);
+                return result.ToHttpResult();
             });
 
     public static RouteHandlerBuilder MapGetFilterQuery<TRequest, TResponse, TFilter>(this IEndpointRouteBuilder builder, string pattern, Func<TFilter, TRequest> create)
@@ -40,12 +41,12 @@ public static class EndpointMapExtensions
         => builder.MapGet(pattern,
             [AllowAnonymous] async (
                 [AsParameters] TFilter filter,
-                [FromServices] IQueryHandler<TRequest, TResponse> handler,
+                [FromServices] IQueryHandler<TRequest, Result<TResponse>> handler,
                 CancellationToken cancellationToken) =>
             {
                 var request = create(filter);
                 var result = await handler.HandleAsync(request, cancellationToken);
-                return Results.Ok(result);
+                return result.ToHttpResult();
             });
 
     public static RouteHandlerBuilder MapPutCommand<TRequest, TDto, TKey>(this IEndpointRouteBuilder builder, string pattern, Func<TKey, TDto, TRequest> create)
@@ -54,12 +55,12 @@ public static class EndpointMapExtensions
             [AllowAnonymous] async (
                 TKey id,
                 [FromBody] TDto dto,
-                [FromServices] ICommandHandler<TRequest, bool> handler,
+                [FromServices] ICommandHandler<TRequest, Result> handler,
                 CancellationToken cancellationToken) =>
             {
                 var request = create(id, dto);
                 var result = await handler.HandleAsync(request, cancellationToken);
-                return result ? Results.Ok() : Results.NotFound();
+                return result.ToHttpResult();
             });
 
 
@@ -68,12 +69,12 @@ public static class EndpointMapExtensions
         where TRequest : class
         => builder.MapDelete(pattern, async (
                 TKey id,
-                [FromServices] ICommandHandler<TRequest, bool> handler,
+                [FromServices] ICommandHandler<TRequest, Result> handler,
                 CancellationToken cancellationToken) =>
         {
             var request = create(id);
             var result = await handler.HandleAsync(request, cancellationToken);
-            return result ? Results.Ok() : Results.NotFound();
+            return result.ToHttpResult();
         });
 }
 

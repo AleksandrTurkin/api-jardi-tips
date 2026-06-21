@@ -1,21 +1,23 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.DataAccess;
 using JardiTips.Application.Features.Categories.Models;
+using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
+using JardiTips.Domain.Enums;
 
 namespace JardiTips.Application.Features.Categories
 {
     public record UpdateCategoryCommand(Guid Id, UpdateCategoryDto Category);
 
-    public class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork) : ICommandHandler<UpdateCategoryCommand, bool>
+    public class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork) : ICommandHandler<UpdateCategoryCommand, Result>
     {
-        public async Task<bool> HandleAsync(UpdateCategoryCommand command, CancellationToken ct = default)
+        public async Task<Result> HandleAsync(UpdateCategoryCommand command, CancellationToken ct = default)
         {
             var repository = unitOfWork.Repository<CategoryEntity>();
             var dbCategory = await repository.GetByIdAsync(command.Id, ct);
 
             if (dbCategory == null)
-                throw new Exception("Category not found");
+                return new ErrorDetail("Category.NotFound", "The category was not found.", ErrorType.NotFound);
 
             dbCategory.Name = command.Category.Name;
             dbCategory.Description = command.Category.Description;
@@ -23,7 +25,7 @@ namespace JardiTips.Application.Features.Categories
 
             await unitOfWork.SaveChangesAsync(ct);
 
-            return true;
+            return Result.Success();
         }
     }
 }
