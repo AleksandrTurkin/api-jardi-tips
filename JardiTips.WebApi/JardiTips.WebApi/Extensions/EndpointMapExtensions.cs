@@ -18,7 +18,7 @@ public static class EndpointMapExtensions
                 var request = create(dto);
                 var result = await handler.HandleAsync(request, cancellationToken);
                 return result.ToHttpResult();
-            });
+            }).AddEndpointFilter<ValidationEndpointFilter>();
 
     public static RouteHandlerBuilder MapGetByIdQuery<TRequest, TResponse, TKey>(this IEndpointRouteBuilder builder, string pattern, Func<TKey, TRequest> create)
         where TRequest : class
@@ -61,7 +61,7 @@ public static class EndpointMapExtensions
                 var request = create(id, dto);
                 var result = await handler.HandleAsync(request, cancellationToken);
                 return result.ToHttpResult();
-            });
+            }).AddEndpointFilter<ValidationEndpointFilter>();
 
 
     public static RouteHandlerBuilder MapDeleteCommand<TRequest, TKey>(this IEndpointRouteBuilder builder, string pattern,

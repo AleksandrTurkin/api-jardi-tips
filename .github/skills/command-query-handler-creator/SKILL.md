@@ -92,7 +92,7 @@ Usage expectations by handler type:
 2. Check for existing target handler files.
 3. Stop if all 5 handlers already exist.
 4. Ensure feature folder exists; create it if missing.
-5. Ensure `Models` folder and DTOs exist if needed by handler contracts.
+5. Ensure `Models` folder and DTOs exist if needed by handler contracts, and apply the mandatory DTO validation attributes to input DTOs.
 6. Create command/query record types and handler classes in each file.
 7. Inject `IUnitOfWork` and use repository access against `<EntityName>Entity`.
 8. Add mapping methods between entity and DTO where needed, and return mapped values through `Result` wrappers.
@@ -122,6 +122,32 @@ Required DTO coverage for full feature generation:
 - `<EntityName>Dto`
 - `<FeatureFolderName>FilterDto` (or equivalent filter DTO that extends `PagerRequestDto`)
 
+## DTO Validation Rules (Mandatory)
+Input DTOs must declare validation using `System.ComponentModel.DataAnnotations` so model validation is enforced at the endpoint boundary.
+
+Apply validation to input DTOs:
+- `Create<EntityName>Dto`
+- `Update<EntityName>Dto`
+
+Attribute target rule (critical for records):
+- On positional records, annotate each parameter with the `property` target so attributes bind to the generated properties, not the constructor parameters.
+- Correct: `[property: Required, StringLength(250)] string Name`
+- Incorrect: `[Required][StringLength(250)] string Name` (attributes land on the constructor parameter and are ignored by validation)
+
+Attribute selection guidance:
+- Use `[Required]` for mandatory fields.
+- Use `[StringLength(max)]` for bounded text; keep the max length aligned with the entity/EF configuration.
+- Use `[EnumDataType(typeof(<EnumType>))]` for enum inputs.
+- Use `[Range(...)]`, `[EmailAddress]`, `[Url]`, and similar attributes where the field semantics require them.
+
+Non-input DTOs:
+- Output DTOs (`<EntityName>Dto`) do not require input validation attributes.
+- Filter DTOs (`<FeatureFolderName>FilterDto`) only need validation attributes when paging/filter inputs require bounds; keep `[property: ...]` targeting when the filter is a positional record.
+
+Reference DTOs:
+- `JardiTips.Application/Features/Categories/Models/CreateCategoryDto.cs`
+- `JardiTips.Application/Features/Categories/Models/UpdateCategoryDto.cs`
+
 ## Naming and Folder Rules
 - Feature folder must be plural, for example `Users`, `Tips`, `Categories`.
 - Handler class names stay singular where entity-specific (`CreateUser...`, `GetUserById...`).
@@ -142,6 +168,7 @@ Required DTO coverage for full feature generation:
 - Handler return contracts follow the Result Pattern (`Result`/`Result<T>`).
 - DTO usage is consistent and compiles.
 - All required DTOs for create, update, item response, and list filter are present.
+- Input DTOs (`Create<EntityName>Dto`, `Update<EntityName>Dto`) declare DataAnnotations validation with `[property: ...]` targeting on positional records.
 - No unrelated files changed.
 
 ## Output Contract

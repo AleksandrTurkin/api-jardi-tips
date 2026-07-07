@@ -17,7 +17,7 @@ namespace JardiTips.Application.Features.Categories
             var category = await repository.GetByIdAsync(query.Id, ct);
 
             if (category == null)
-                return new ErrorDetail("Category.NotFound", $"Category with Id {query.Id} not found.", ErrorType.NotFound);
+                return new ErrorDetail("category-not-found", $"Category with Id {query.Id} not found.", ErrorType.NotFound);
             
             return Map(category);
         }

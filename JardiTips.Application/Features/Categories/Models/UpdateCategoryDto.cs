@@ -1,4 +1,8 @@
-﻿namespace JardiTips.Application.Features.Categories.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace JardiTips.Application.Features.Categories.Models
 {
-    public record UpdateCategoryDto(string Name, string Description);
+    public record UpdateCategoryDto(
+        [property: Required, StringLength(250)] string Name,
+        [property: Required, StringLength(2000)] string Description);
 }

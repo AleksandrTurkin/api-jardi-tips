@@ -16,7 +16,7 @@ namespace JardiTips.Application.Features.Categories
             var dbCategory = await repository.GetByIdAsync(command.Id, ct);
 
             if (dbCategory == null)
-                return new ErrorDetail("Category.NotFound", "The category was not found.", ErrorType.NotFound);  
+                return new ErrorDetail("category-not-found", "The category was not found.", ErrorType.NotFound);  
 
             repository.Remove(dbCategory);
             await unitOfWork.SaveChangesAsync(ct);

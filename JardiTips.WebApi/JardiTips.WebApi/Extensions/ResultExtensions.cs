@@ -5,6 +5,8 @@ namespace JardiTips.WebApi.Extensions
 {
     public static class ResultExtensions
     {
+        private const string ProblemTypeBaseUri = "/errors/";
+
         public static IResult ToHttpResult(this Result result)
         {
             if (result.IsSuccess)
@@ -23,34 +25,41 @@ namespace JardiTips.WebApi.Extensions
 
         private static IResult MapErrorResult(ErrorDetail error)
         {
-            return error.Type switch
-            {
-                ErrorType.NotFound => TypedResults.Problem(
-                    statusCode: StatusCodes.Status404NotFound,
-                    title: error.Code,
-                    detail: error.Description),
+            var typeUri = ProblemTypeBaseUri + error.Code;
 
-                ErrorType.ValidationError => TypedResults.ValidationProblem(
+            if (error.Type == ErrorType.ValidationError)
+            {
+                return TypedResults.ValidationProblem(
                     errors: error.Extensions ?? new Dictionary<string, string[]>
                         { { error.Code, [error.Description] } },
-                    title: "Validation Error",
-                    detail: "One or more validation failures occurred."),
+                    title: "One or more validation errors occurred",
+                    detail: error.Description,
+                    type: typeUri,
+                    extensions: new Dictionary<string, object?> { ["code"] = error.Code });
+            }
 
-                ErrorType.BadRequest => TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: error.Code,
-                    detail: error.Description),
-
-                ErrorType.EntityAlreadyExists => TypedResults.Problem(
-                    statusCode: StatusCodes.Status409Conflict,
-                    title: error.Code,
-                    detail: error.Description),
-
-                _ => TypedResults.Problem(
-                    statusCode: StatusCodes.Status500InternalServerError,
-                    title: "Server Error",
-                    detail: error.Description)
+            var (statusCode, title) = error.Type switch
+            {
+                ErrorType.NotFound => (StatusCodes.Status404NotFound, "Resource not found"),
+                ErrorType.BadRequest => (StatusCodes.Status400BadRequest, "Bad request"),
+                ErrorType.EntityAlreadyExists => (StatusCodes.Status409Conflict, "Resource already exists"),
+                _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
             };
+
+            var extensions = new Dictionary<string, object?> { ["code"] = error.Code };
+
+            if (error.Extensions is not null)
+            {
+                foreach (var (key, value) in error.Extensions)
+                    extensions[key] = value;
+            }
+
+            return TypedResults.Problem(
+                statusCode: statusCode,
+                title: title,
+                detail: error.Description,
+                type: typeUri,
+                extensions: extensions);
         }
     }
 }

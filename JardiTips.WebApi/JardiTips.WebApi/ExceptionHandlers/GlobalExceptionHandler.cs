@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JardiTips.WebApi.ExceptionHandlers;
@@ -15,11 +14,21 @@ internal sealed class GlobalExceptionHandler(
     {
         logger.LogError(exception, "Unhandled exception occurred");
 
-        httpContext.Response.StatusCode = exception switch
+        var (statusCode, type, title, detail) = exception switch
         {
-            ApplicationException => StatusCodes.Status400BadRequest,
-            _ => StatusCodes.Status500InternalServerError
+            ApplicationException => (
+                StatusCodes.Status400BadRequest,
+                "/errors/bad-request",
+                "Bad request",
+                exception.Message),
+            _ => (
+                StatusCodes.Status500InternalServerError,
+                "/errors/internal-server-error",
+                "An unexpected error occurred",
+                "An unexpected error occurred while processing your request.")
         };
+
+        httpContext.Response.StatusCode = statusCode;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
@@ -27,9 +36,11 @@ internal sealed class GlobalExceptionHandler(
             Exception = exception,
             ProblemDetails = new ProblemDetails
             {
-                Type = exception.GetType().Name,
-                Title = "Server.InternalError",
-                Detail = exception.Message
+                Type = type,
+                Title = title,
+                Detail = detail,
+                Status = statusCode,
+                Instance = httpContext.Request.Path
             }
         });
     }
