@@ -44,11 +44,15 @@ public sealed class ValidationEndpointFilter : IEndpointFilter
 
     private static bool IsSystemType(Type type)
     {
-        return type.IsPrimitive ||
-               type == typeof(string) ||
-               type == typeof(CancellationToken) ||
+        type = Nullable.GetUnderlyingType(type) ?? type;
+
+        if (type.IsValueType)
+            return true;
+
+        return type == typeof(string) ||
                type == typeof(HttpContext) ||
                type == typeof(System.Security.Claims.ClaimsPrincipal) ||
-               type.Namespace?.StartsWith("Microsoft.AspNetCore") == true;
+               type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true ||
+               type.Namespace?.StartsWith("Microsoft.AspNetCore", StringComparison.Ordinal) == true;
     }
 }
