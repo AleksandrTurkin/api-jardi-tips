@@ -1,4 +1,5 @@
 ﻿using JardiTips.Application.DataAccess;
+using JardiTips.Domain.Entities;
 using JardiTips.Infrastructure.Data.Repositories;
 
 namespace JardiTips.Infrastructure.Data
@@ -7,7 +8,7 @@ namespace JardiTips.Infrastructure.Data
     {
         private readonly Dictionary<Type, object> _repositories = new();
 
-        public IRepository<TEntity> Repository<TEntity>() where TEntity : class
+        public IRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity
         {
             if (_repositories.ContainsKey(typeof(TEntity)))
             {
@@ -18,7 +19,7 @@ namespace JardiTips.Infrastructure.Data
             _repositories.Add(typeof(TEntity), repository);
             return repository;
         }
-
+        
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {
             return await context.SaveChangesAsync(cancellationToken);

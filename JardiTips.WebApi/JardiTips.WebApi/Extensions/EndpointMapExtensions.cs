@@ -37,7 +37,7 @@ public static class EndpointMapExtensions
     public static RouteHandlerBuilder MapGetFilterQuery<TRequest, TResponse, TFilter>(this IEndpointRouteBuilder builder, string pattern, Func<TFilter, TRequest> create)
         where TRequest : class
         where TResponse : class
-        where TFilter : PagerRequestDto
+        where TFilter : PagedRequestDto
         => builder.MapGet(pattern,
             [AllowAnonymous] async (
                 [AsParameters] TFilter filter,
@@ -47,7 +47,7 @@ public static class EndpointMapExtensions
                 var request = create(filter);
                 var result = await handler.HandleAsync(request, cancellationToken);
                 return result.ToHttpResult();
-            });
+            }).AddEndpointFilter<ValidationEndpointFilter>();
 
     public static RouteHandlerBuilder MapPutCommand<TRequest, TDto, TKey>(this IEndpointRouteBuilder builder, string pattern, Func<TKey, TDto, TRequest> create)
         where TRequest : class

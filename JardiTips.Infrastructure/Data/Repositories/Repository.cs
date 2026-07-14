@@ -1,10 +1,11 @@
 ﻿using JardiTips.Application.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using JardiTips.Domain.Entities;
 
 namespace JardiTips.Infrastructure.Data.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class
+    public class Repository<T> : IRepository<T> where T : BaseEntity
     {
         protected readonly DbContext Context;
         protected readonly DbSet<T> DbSet;
@@ -57,8 +58,7 @@ namespace JardiTips.Infrastructure.Data.Repositories
             return DbSet.Where(e =>
                 EF.Property<object>(e, keyProperty.Name).Equals(key));
         }
-
-
+        
         public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken)
         {
             return await DbSet.ToListAsync(cancellationToken);
@@ -67,6 +67,22 @@ namespace JardiTips.Infrastructure.Data.Repositories
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
         {
             return await DbSet.Where(predicate).ToListAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<T>> GetPagerResultAsync(IQueryable<T> query, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken)
+        {
+            query = query.OrderByDescending(x => x.CreatedAt)
+                         .ThenByDescending(x => x.Id);
+            
+            if (dateTime == null || lastId == null)
+                return await query.Take(limit).AsNoTracking().ToListAsync(cancellationToken);
+
+            query = query.Where(x => EF.Functions.LessThan(
+                ValueTuple.Create(x.CreatedAt, x.Id),
+                ValueTuple.Create(dateTime, lastId)))
+                .Take(limit);
+
+            return await query.AsNoTracking().ToListAsync(cancellationToken);
         }
 
         public async Task AddAsync(T entity, CancellationToken cancellationToken)

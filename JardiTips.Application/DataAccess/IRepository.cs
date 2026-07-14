@@ -1,8 +1,9 @@
 ﻿using System.Linq.Expressions;
+using JardiTips.Domain.Entities;
 
 namespace JardiTips.Application.DataAccess
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T> where T : BaseEntity
     {
         Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken);
 
@@ -15,6 +16,8 @@ namespace JardiTips.Application.DataAccess
         Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken);
 
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
+
+        Task<IEnumerable<T>> GetPagerResultAsync(IQueryable<T> query, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken);
 
         Task AddAsync(T entity, CancellationToken cancellationToken);
 

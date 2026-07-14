@@ -1,5 +1,6 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.DataAccess;
+using JardiTips.Application.Features.Base;
 using JardiTips.Application.Features.Categories.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
@@ -8,14 +9,13 @@ namespace JardiTips.Application.Features.Categories
 {
     public record GetCategoriesQuery(CategoriesFilterDto Filters);
 
-    public class GetCategoriesQueryHandler(IUnitOfWork unitOfWork) : IQueryHandler<GetCategoriesQuery, Result<List<CategoryDto>>>
+    public class GetCategoriesQueryHandler(IUnitOfWork unitOfWork) : BasePagedQueryHandler<CategoriesFilterDto, CategoryEntity>(unitOfWork), IQueryHandler<GetCategoriesQuery, Result<PagedResult<CategoryDto>>>
     {
-        public async Task<Result<List<CategoryDto>>> HandleAsync(GetCategoriesQuery query, CancellationToken ct = default)
+        public async Task<Result<PagedResult<CategoryDto>>> HandleAsync(GetCategoriesQuery query, CancellationToken ct = default)
         {
-            var repository = unitOfWork.Repository<CategoryEntity>();
-            var categories = await repository.GetAllAsync(ct);
+            var result = await BaseHandle(query.Filters, Map, ct);
 
-            return categories.Select(Map).ToList();
+            return result;
         }
 
         private static CategoryDto Map(CategoryEntity category) 

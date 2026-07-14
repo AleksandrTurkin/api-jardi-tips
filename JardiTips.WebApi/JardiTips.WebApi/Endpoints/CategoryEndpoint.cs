@@ -13,7 +13,7 @@ namespace JardiTips.WebApi.Endpoints
         {
             services.AddScoped<ICommandHandler<CreateCategoryCommand, Result<Guid>>, CreateCategoryCommandHandler>();
             services.AddScoped<IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>, GetCategoryByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<GetCategoriesQuery, Result<List<CategoryDto>>>, GetCategoriesQueryHandler>();
+            services.AddScoped<IQueryHandler<GetCategoriesQuery, Result<PagedResult<CategoryDto>>>, GetCategoriesQueryHandler>();
             services.AddScoped<ICommandHandler<UpdateCategoryCommand, Result>, UpdateCategoryCommandHandler>();
             services.AddScoped<ICommandHandler<DeleteCategoryCommand, Result>, DeleteCategoryCommandHandler>();
         }
@@ -24,7 +24,7 @@ namespace JardiTips.WebApi.Endpoints
 
             group.MapPostCommand<CreateCategoryCommand, CreateCategoryDto>("", dto => new CreateCategoryCommand(dto));
             group.MapGetByIdQuery<GetCategoryByIdQuery, CategoryDto, Guid>("{id:guid}", id => new GetCategoryByIdQuery(id));
-            group.MapGetFilterQuery<GetCategoriesQuery, List<CategoryDto>, CategoriesFilterDto>("", filters => new GetCategoriesQuery(filters));
+            group.MapGetFilterQuery<GetCategoriesQuery, PagedResult<CategoryDto>, CategoriesFilterDto >("", filters => new GetCategoriesQuery(filters));
             group.MapPutCommand<UpdateCategoryCommand, UpdateCategoryDto, Guid>("{id:guid}", (id, dto) => new UpdateCategoryCommand(id, dto));
             group.MapDeleteCommand<DeleteCategoryCommand, Guid>("{id:guid}", id => new DeleteCategoryCommand(id));
         }
