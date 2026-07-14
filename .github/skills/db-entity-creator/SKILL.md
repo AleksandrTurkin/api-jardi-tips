@@ -40,6 +40,7 @@ Use these files as the source pattern for style and conventions:
 
 Conventions to preserve:
 - Entity in Domain layer.
+- Entity inherits `BaseEntity` (provides `Id` and `CreatedAt`), required for cursor-based pagination.
 - EF configuration in Infrastructure layer.
 - Mapping via `IEntityTypeConfiguration<T>`.
 - Required fields and max lengths configured with Fluent API.
@@ -91,10 +92,15 @@ If entity exists:
 Create in:
 - `JardiTips.Domain/Entities/<EntityName>.cs`
 
+Inheritance rule (mandatory):
+- The entity class must inherit `BaseEntity`: `public class <EntityName> : BaseEntity`.
+- `BaseEntity` (`JardiTips.Domain/Entities/BaseEntity.cs`) already provides `Guid Id` and `DateTime CreatedAt`. Do not redeclare them on the entity.
+- Inheriting `BaseEntity` is required for cursor-based pagination: `BasePagedQueryHandler` constrains `TEntity : BaseEntity` and builds the page cursor from `Id` and `CreatedAt`. An entity that does not inherit `BaseEntity` cannot be listed through the paged query handlers.
+- Mirror `CategoryEntity` (`JardiTips.Domain/Entities/CategoryEntity.cs`), which inherits `BaseEntity`.
+
 Apply these defaults unless user says otherwise:
-- `Guid Id` primary key.
-- `DateTime CreatedAt`.
-- `DateTime UpdatedAt`.
+- `Id` and `CreatedAt` are inherited from `BaseEntity` (do not redeclare).
+- `DateTime UpdatedAt` on the entity when the entity is mutable.
 - Additional properties from user field definitions.
 
 Map user field descriptions into concise XML comments only when clarification is needed for non-obvious fields.
@@ -143,6 +149,7 @@ Rollback constraints:
 ### 7) Validation and completion checks
 Completion criteria:
 - Entity class exists and compiles.
+- Entity inherits `BaseEntity` and does not redeclare `Id`/`CreatedAt`.
 - Configuration class exists and compiles.
 - Migration files created.
 - No unrelated file rewrites.

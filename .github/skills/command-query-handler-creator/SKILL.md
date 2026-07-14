@@ -67,9 +67,24 @@ Example for `User` and `Users`:
 - All handler result types must use `JardiTips.Domain.Common.Result` wrappers.
 - Create command handler returns `Result<Guid>`.
 - Get-by-id query handler returns `Result<<EntityName>Dto>`.
-- Get-list query handler returns `Result<List<<EntityName>Dto>>`.
+- Get-list query handler returns `Result<PagedResult<<EntityName>Dto>>` (cursor pagination). Do not use `Result<List<...>>` for list queries.
 - Update and delete command handlers return `Result`.
 - Validation/not-found paths should return domain error details instead of primitive failure flags.
+
+## Cursor Pagination Rules (Mandatory)
+List queries use cursor-based (keyset) pagination, not offset/skip paging.
+
+- The get-list handler must inherit `BasePagedQueryHandler<<FeatureFolderName>FilterDto, <EntityName>Entity>` from `JardiTips.Application/Features/Base/BasePagedQueryHandler.cs`.
+- Call the inherited `BaseHandle(query.Filters, Map, ct)` to produce the paged result instead of querying the repository directly.
+- The handler returns `Result<PagedResult<<EntityName>Dto>>`; assign the `BaseHandle` output directly to the result (implicit `Result` conversion).
+- Provide a private static `Map(<EntityName>Entity entity)` method that projects the entity to `<EntityName>Dto`.
+- Apply entity-specific filtering by overriding `protected override IQueryable<<EntityName>Entity> ModifyQuery(IQueryable<<EntityName>Entity> query, <FeatureFolderName>FilterDto request)`; do not re-implement cursor/limit logic (the base class owns cursor decoding, limit + 1 look-ahead, and `PageContext` encoding).
+- The list query record wraps the filter DTO, for example `public record Get<FeatureFolderName>Query(<FeatureFolderName>FilterDto Filters);`.
+
+Reference pattern:
+- `JardiTips.Application/Features/Categories/GetCategoriesQueryHandler.cs`
+- `JardiTips.Application/Features/Base/BasePagedQueryHandler.cs`
+- `JardiTips.Application/Base/PagedRequestDto.cs`, `PagedResult.cs`, `PagedCursor.cs`
 
 ## Repository Usage in Handlers (Mandatory)
 Use repository access through Unit of Work inside every handler.
@@ -83,7 +98,7 @@ Example from Categories:
 Usage expectations by handler type:
 - Create: use repository `AddAsync(...)` and then `SaveChangesAsync(...)`.
 - Delete: load by id, validate existence, then `Remove(...)` and `SaveChangesAsync(...)`.
-- Get list: query via repository and map entities to DTO collection.
+- Get list: inherit `BasePagedQueryHandler`, call `BaseHandle(...)` with a `Map` projection, and override `ModifyQuery` for filtering; do not query the repository directly for cursor paging.
 - Get by id: load via repository, validate existence, map to DTO.
 - Update: load by id, mutate fields, then `SaveChangesAsync(...)`.
 
@@ -110,7 +125,7 @@ Use DTOs when needed:
 - Create command input DTO for create operations.
 - Update command input DTO for update operations.
 - Output DTO for query results.
-- Filter DTO for list queries when list filtering/paging input is required.
+- Filter DTO for list queries; it must extend `PagedRequestDto` so cursor paging inputs (`PageContext`, `Limit`) are inherited.
 
 If DTOs already exist, reuse them.
 If missing, create all required DTOs for a complete handler set under:
@@ -120,7 +135,7 @@ Required DTO coverage for full feature generation:
 - `Create<EntityName>Dto`
 - `Update<EntityName>Dto`
 - `<EntityName>Dto`
-- `<FeatureFolderName>FilterDto` (or equivalent filter DTO that extends `PagerRequestDto`)
+- `<FeatureFolderName>FilterDto` (filter DTO that extends `PagedRequestDto`)
 
 ## DTO Validation Rules (Mandatory)
 Input DTOs must declare validation using `System.ComponentModel.DataAnnotations` so model validation is enforced at the endpoint boundary.
@@ -142,7 +157,7 @@ Attribute selection guidance:
 
 Non-input DTOs:
 - Output DTOs (`<EntityName>Dto`) do not require input validation attributes.
-- Filter DTOs (`<FeatureFolderName>FilterDto`) only need validation attributes when paging/filter inputs require bounds; keep `[property: ...]` targeting when the filter is a positional record.
+- Filter DTOs (`<FeatureFolderName>FilterDto`) extend `PagedRequestDto` and inherit its paging validation (`Limit` range). Add validation attributes only for entity-specific filter fields, keeping `[property: ...]` targeting on positional records.
 
 Reference DTOs:
 - `JardiTips.Application/Features/Categories/Models/CreateCategoryDto.cs`
@@ -165,7 +180,9 @@ Reference DTOs:
 - Exactly 5 handlers exist for the feature.
 - Query handlers implement `IQueryHandler`.
 - Command handlers implement `ICommandHandler`.
-- Handler return contracts follow the Result Pattern (`Result`/`Result<T>`).
+- Handler return contracts follow the Result Pattern (`Result`/`Result<T>`), and the get-list handler returns `Result<PagedResult<<EntityName>Dto>>`.
+- Get-list handler inherits `BasePagedQueryHandler` and uses `BaseHandle` for cursor pagination.
+- Filter DTO extends `PagedRequestDto`.
 - DTO usage is consistent and compiles.
 - All required DTOs for create, update, item response, and list filter are present.
 - Input DTOs (`Create<EntityName>Dto`, `Update<EntityName>Dto`) declare DataAnnotations validation with `[property: ...]` targeting on positional records.

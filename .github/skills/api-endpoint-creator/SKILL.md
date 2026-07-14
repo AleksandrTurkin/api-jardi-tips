@@ -15,6 +15,7 @@ This skill creates endpoint classes that:
 - Register command/query handler services.
 - Map HTTP routes through `EndpointMapExtensions`.
 - Use `Result` and `Result<T>` handler contracts compatible with HTTP result conversion.
+- Use `Result<PagedResult<TDto>>` for list (filter) queries with cursor-based pagination.
 
 ## Scope
 Responsible area:
@@ -67,14 +68,14 @@ All generated endpoints must:
 6. Implement `Register` method:
 - Register create command handler (`ICommandHandler<..., Result<Guid>>`).
 - Register get-by-id query handler (`IQueryHandler<..., Result<Dto>>`).
-- Register get-list query handler (`IQueryHandler<..., Result<List<Dto>>>`).
+- Register get-list query handler (`IQueryHandler<..., Result<PagedResult<Dto>>>`).
 - Register update command handler (`ICommandHandler<..., Result>`).
 - Register delete command handler (`ICommandHandler<..., Result>`).
 7. Implement `Map` method:
 - Create group with `builder.MapGroup("/<EntityRoute>").WithTags("<EntityName>")`.
 - Map create via `MapPostCommand<TRequest, TDto>`.
 - Map get-by-id via `MapGetByIdQuery<TRequest, TResponse, TKey>`.
-- Map list via `MapGetFilterQuery<TRequest, TResponse, TFilter>`.
+- Map list via `MapGetFilterQuery<TRequest, PagedResult<TDto>, TFilter>` where `TFilter` extends `PagedRequestDto`.
 - Map update via `MapPutCommand<TRequest, TDto, TKey>`.
 - Map delete via `MapDeleteCommand<TRequest, TKey>`.
 8. Keep behavior consistent with `CategoryEndpoint` structure and formatting.
@@ -85,7 +86,7 @@ All generated endpoints must:
 Use explicit registration pattern:
 - `services.AddScoped<ICommandHandler<TCommand, Result<Guid>>, TCreateHandler>();`
 - `services.AddScoped<IQueryHandler<TQueryById, Result<TDto>>, TGetByIdHandler>();`
-- `services.AddScoped<IQueryHandler<TListQuery, Result<List<TDto>>>, TGetListHandler>();`
+- `services.AddScoped<IQueryHandler<TListQuery, Result<PagedResult<TDto>>>, TGetListHandler>();`
 - `services.AddScoped<ICommandHandler<TUpdateCommand, Result>, TUpdateHandler>();`
 - `services.AddScoped<ICommandHandler<TDeleteCommand, Result>, TDeleteHandler>();`
 
@@ -93,9 +94,12 @@ Use explicit registration pattern:
 Use extension mapping methods from `EndpointMapExtensions` only:
 - `MapPostCommand<TRequest, TDto>`
 - `MapGetByIdQuery<TRequest, TResponse, TKey>`
-- `MapGetFilterQuery<TRequest, TResponse, TFilter>`
+- `MapGetFilterQuery<TRequest, PagedResult<TDto>, TFilter>` (list query returns a cursor-paged `PagedResult<TDto>`; `TFilter : PagedRequestDto`)
 - `MapPutCommand<TRequest, TDto, TKey>`
 - `MapDeleteCommand<TRequest, TKey>`
+
+Cursor pagination note:
+- The list route response type is `PagedResult<TDto>`, which carries a `PageContext` cursor and `Data`. Reference `CategoryEndpoint.Map` where list is mapped as `MapGetFilterQuery<GetCategoriesQuery, PagedResult<CategoryDto>, CategoriesFilterDto>`.
 
 Endpoint group naming rule (mandatory):
 - Use `var group = builder.MapGroup("/<plural-entity>").WithTags("<singular-entity>");`.
