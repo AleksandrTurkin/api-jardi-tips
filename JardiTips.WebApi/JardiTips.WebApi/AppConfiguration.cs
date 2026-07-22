@@ -1,6 +1,5 @@
 ﻿using JardiTips.WebApi.Endpoints.Base;
 using JardiTips.WebApi.ExceptionHandlers;
-using JardiTips.WebApi.Extensions;
 using JardiTips.WebApi.Swagger;
 using System.Reflection;
 
@@ -14,7 +13,10 @@ public static class AppConfiguration
         builder.Services.AddProblemDetails();
 
         builder.AddServiceDefaults();
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
 
         var entryAssembly = Assembly.GetEntryAssembly() ?? throw new Exception("Failed to get the entry assembly");
         builder.Services.AddEndpoints(entryAssembly);
@@ -38,21 +40,21 @@ public static class AppConfiguration
         
     public static void Use(this WebApplication app)
     {
+        app.UseExceptionHandler();
+
         if (app.Environment.IsDevelopment())
         {
-            app.MapOpenApi();
+            app.MapOpenApi().AllowAnonymous();
             app.UseSwagger();
         }
 
-        var group = app.MapGroup("api");
-        app.MapEndpoints(group);
-
         app.UseCors("AllowAll");
         app.UseHttpsRedirection();
-        
-        app.UseExceptionHandler();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
-        app.InitializeDbIfNotExists();
+        var group = app.MapGroup("api");
+        app.MapEndpoints(group);
     }
 }
 

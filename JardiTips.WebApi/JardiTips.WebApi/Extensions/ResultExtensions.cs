@@ -40,6 +40,7 @@ namespace JardiTips.WebApi.Extensions
 
             var (statusCode, title) = error.Type switch
             {
+                ErrorType.Unauthorized => (StatusCodes.Status401Unauthorized, "Unauthorized"),
                 ErrorType.NotFound => (StatusCodes.Status404NotFound, "Resource not found"),
                 ErrorType.BadRequest => (StatusCodes.Status400BadRequest, "Bad request"),
                 ErrorType.EntityAlreadyExists => (StatusCodes.Status409Conflict, "Resource already exists"),

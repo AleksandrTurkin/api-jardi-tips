@@ -5,6 +5,7 @@
         ValidationError,
         NotFound,
         EntityAlreadyExists,
-        BadRequest
+        BadRequest,
+        Unauthorized
     }
 }

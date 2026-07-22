@@ -1,6 +1,7 @@
 ﻿using JardiTips.Application.DataAccess;
 using JardiTips.Infrastructure.Data;
 using JardiTips.Infrastructure.Data.Repositories;
+using JardiTips.WebApi.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace JardiTips.WebApi;
@@ -16,6 +17,7 @@ public static class AppServices
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddJwtAuthentication(builder.Configuration);
     }
 }
 

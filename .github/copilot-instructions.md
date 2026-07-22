@@ -14,6 +14,13 @@
 - Requests flow through endpoint classes into CQRS handlers in `JardiTips.Application`.
 - Data access goes through `IUnitOfWork` and `IRepository<T>`, then EF Core in `JardiTips.Infrastructure`.
 
+## DTO conventions
+
+- Define request/input DTOs as positional `record` types, not classes with mutable properties.
+- Apply validation using `[property: ...]` attribute targets on the positional parameters (e.g., `[property: Required, StringLength(250)]`).
+- Prefer `StringLength(n)` over `MaxLength(n)` for string length validation to stay consistent with existing DTOs.
+- Follow `JardiTips.Application/Features/Categories/Models/CreateCategoryDto.cs` as the reference example.
+
 ## Data and environment notes
 
 - The API uses PostgreSQL through Npgsql and EF Core.
