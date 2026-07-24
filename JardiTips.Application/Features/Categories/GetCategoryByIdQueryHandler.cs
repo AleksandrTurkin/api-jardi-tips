@@ -1,5 +1,6 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.DataAccess;
+using JardiTips.Application.Features.Authentication;
 using JardiTips.Application.Features.Categories.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
@@ -9,12 +10,13 @@ namespace JardiTips.Application.Features.Categories
 {
     public record GetCategoryByIdQuery(Guid Id);
 
-    public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork) : IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>
+    public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContext) : IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>
     {
         public async Task<Result<CategoryDto>> HandleAsync(GetCategoryByIdQuery query, CancellationToken ct = default)
         {
+            var userId = authContext.GetUserId();
             var repository = unitOfWork.Repository<CategoryEntity>();
-            var category = await repository.GetByIdAsync(query.Id, ct);
+            var category = await repository.FirstOrDefaultAsync(x => x.Id == query.Id && (x.OwnerUserId == null || x.OwnerUserId == userId), ct);
 
             if (category == null)
                 return new ErrorDetail("category-not-found", $"Category with Id {query.Id} not found.", ErrorType.NotFound);

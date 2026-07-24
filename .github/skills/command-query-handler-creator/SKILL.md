@@ -102,6 +102,27 @@ Usage expectations by handler type:
 - Get by id: load via repository, validate existence, map to DTO.
 - Update: load by id, mutate fields, then `SaveChangesAsync(...)`.
 
+## Validation Rules (Mandatory)
+Validate inside the handler using guard clauses. Do not add a separate validation framework or abstraction (neither third-party like FluentValidation nor a homegrown `Validator<T>`) unless rules become substantial and repetitive.
+
+- Perform structural/input validation with DataAnnotations on the input DTOs (`[property: Required, StringLength(...)]`); keep this on the DTO, not in the handler.
+- Perform business-rule and existence validation with guard clauses at the top of `HandleAsync`, before mutating state or saving.
+- Return failures as domain error details, never primitive flags or exceptions:
+  - `return new ErrorDetail("<kebab-case-code>", "<human readable message>", ErrorType.<Type>);`
+  - Rely on the implicit `ErrorDetail` -> `Result`/`Result<T>` conversion; do not construct `Result` manually for failures.
+- Error type selection:
+  - `ErrorType.NotFound` when an entity cannot be loaded (e.g., wrong id or not owned by the current user).
+  - `ErrorType.ValidationError` for business-rule violations (e.g., disallowed enum value or state). Maps to an RFC-7807 `ValidationProblem`.
+  - `ErrorType.EntityAlreadyExists` for uniqueness conflicts.
+  - `ErrorType.Unauthorized` for authentication/authorization failures.
+- Ordering: run cheap in-memory rule checks first, then existence checks that hit the database, then persistence.
+- Keep error `Code` values kebab-case, stable, and unique per rule so clients can branch on them.
+- Structure the guard clauses to grow: for a single rule, keep it inline at the top of `HandleAsync`; when a handler has (or is expected to have) multiple rules, extract them into a `private static Result Validate(<Command> command)` method that returns `Result.Success()` when all rules pass.
+- When a handler returns `Result<T>` and `Validate` returns the non-generic `Result`, short-circuit with `if (validationResult.IsFailure) return validationResult.Error!;` to leverage the implicit `ErrorDetail` -> `Result<T>` conversion.
+
+Reference examples:
+- `JardiTips.Application/Features/Categories/CreateCategoryCommandHandler.cs` (extracted `Validate` method with a `System`-type business-rule guard).
+
 ## Procedure
 1. Validate naming inputs and infer paths.
 2. Check for existing target handler files.
@@ -186,6 +207,7 @@ Reference DTOs:
 - DTO usage is consistent and compiles.
 - All required DTOs for create, update, item response, and list filter are present.
 - Input DTOs (`Create<EntityName>Dto`, `Update<EntityName>Dto`) declare DataAnnotations validation with `[property: ...]` targeting on positional records.
+- Business-rule and existence validation is implemented as handler guard clauses returning `ErrorDetail` with the correct `ErrorType`; no separate validation framework/abstraction was introduced.
 - No unrelated files changed.
 
 ## Output Contract

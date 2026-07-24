@@ -27,6 +27,8 @@ public static class AuthenticationExtensions
 
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<IAuthContext, AuthContext>();
 
         var jwtOptions = GetRequiredJwtOptions(configuration);
         var publicKey = RSA.Create();
