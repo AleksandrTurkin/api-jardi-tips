@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Client/">
+    <Project Path="../client/JardiTips.Client/JardiTips.Client.csproj" />
+  </Folder>
   <Project Path="JardiTips.Application/JardiTips.Application.csproj" />
   <Project Path="JardiTips.Domain/JardiTips.Domain.csproj" />
   <Project Path="JardiTips.Infrastructure/JardiTips.Infrastructure.csproj" />

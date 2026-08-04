@@ -32,7 +32,9 @@ namespace JardiTips.Application.Features.Categories
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
-                Type = category.Type
+                Type = category.Type,
+                TipsCount = category.TipsCount,
+                CoverImageUrl = category.CoverImageUrl
             };
         }   
     }

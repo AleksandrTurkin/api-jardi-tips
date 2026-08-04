@@ -11,5 +11,9 @@ namespace JardiTips.Application.Features.Categories.Models
         public string Description { get; set; } = string.Empty;
 
         public CategoryType Type { get; set; }
+
+        public int TipsCount { get; set; }
+
+        public string? CoverImageUrl { get; set; }
     }
 }

@@ -30,6 +30,15 @@ public class CategoryConfiguration : IEntityTypeConfiguration<CategoryEntity>
 
         builder.Property(x => x.Type)
             .IsRequired();
+
+        builder.Property(x => x.TipsCount)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(x => x.CoverImageUrl)
+            .HasMaxLength(2048);
+
+        builder.Property(x => x.LanguageCode)
+            .HasMaxLength(10);
     }
 }
-

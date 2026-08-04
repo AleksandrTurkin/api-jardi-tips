@@ -427,3 +427,4 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+JardiTips.WebApi/JardiTips.WebApi/appsettings.Development.json
