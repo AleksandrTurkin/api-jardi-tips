@@ -19,4 +19,6 @@ public class CategoryEntity : BaseEntity
     public string? CoverImageUrl { get; set; }
 
     public string? LanguageCode { get; set; }
+
+    public ICollection<TipEntity> Tips { get; set; } = [];
 }
