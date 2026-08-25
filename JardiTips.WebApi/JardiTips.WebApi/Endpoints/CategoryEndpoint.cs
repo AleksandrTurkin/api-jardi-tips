@@ -23,8 +23,8 @@ namespace JardiTips.WebApi.Endpoints
             var group = builder.MapGroup("/categories").WithTags("Category");
 
             group.MapPostCommand<CreateCategoryCommand, CreateCategoryDto>("", dto => new CreateCategoryCommand(dto));
-            group.MapGetByIdQuery<GetCategoryByIdQuery, CategoryDto, Guid>("{id:guid}", id => new GetCategoryByIdQuery(id));
-            group.MapGetFilterQuery<GetCategoriesQuery, PagedResult<CategoryDto>, CategoriesFilterDto >("", filters => new GetCategoriesQuery(filters));
+            group.MapGetByIdAnonymousQuery<GetCategoryByIdQuery, CategoryDto, Guid>("{id:guid}", id => new GetCategoryByIdQuery(id));
+            group.MapGetFilterAnonymousQuery<GetCategoriesQuery, PagedResult<CategoryDto>, CategoriesFilterDto >("", filters => new GetCategoriesQuery(filters));
             group.MapPutCommand<UpdateCategoryCommand, UpdateCategoryDto, Guid>("{id:guid}", (id, dto) => new UpdateCategoryCommand(id, dto));
             group.MapDeleteCommand<DeleteCategoryCommand, Guid>("{id:guid}", id => new DeleteCategoryCommand(id));
         }

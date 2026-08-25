@@ -19,7 +19,7 @@ public class TipEndpoint : IEndpoint
     {
         var group = builder.MapGroup("/tips").WithTags("Tip");
 
-        group.MapGetByIdQuery<GetTipByIdQuery, TipDetailDto, Guid>("{id:guid}", id => new GetTipByIdQuery(id));
-        group.MapGetFilterQuery<GetTipsQuery, PagedResult<TipDetailDto>, TipsFilterDto>("", filters => new GetTipsQuery(filters));
+        group.MapGetByIdAnonymousQuery<GetTipByIdQuery, TipDetailDto, Guid>("{id:guid}", id => new GetTipByIdQuery(id));
+        group.MapGetFilterAnonymousQuery<GetTipsQuery, PagedResult<TipDetailDto>, TipsFilterDto>("", filters => new GetTipsQuery(filters));
     }
 }

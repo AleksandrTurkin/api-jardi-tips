@@ -60,6 +60,21 @@ public static class EndpointMapExtensions
                 return result.ToHttpResult();
             });
 
+    public static RouteHandlerBuilder MapGetByIdAnonymousQuery<TRequest, TResponse, TKey>(this IEndpointRouteBuilder builder, string pattern, Func<TKey, TRequest> create)
+        where TRequest : class
+        where TResponse : class
+        => builder.MapGet(pattern,
+            async (
+                TKey id,
+                [FromServices] IQueryHandler<TRequest, Result<TResponse>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var request = create(id);
+                var result = await handler.HandleAsync(request, cancellationToken);
+                return result.ToHttpResult();
+            }).AllowAnonymous();
+
+
     public static RouteHandlerBuilder MapGetFilterQuery<TRequest, TResponse, TFilter>(this IEndpointRouteBuilder builder, string pattern, Func<TFilter, TRequest> create)
         where TRequest : class
         where TResponse : class
@@ -74,6 +89,23 @@ public static class EndpointMapExtensions
                 var result = await handler.HandleAsync(request, cancellationToken);
                 return result.ToHttpResult();
             }).AddEndpointFilter<ValidationEndpointFilter>();
+
+    public static RouteHandlerBuilder MapGetFilterAnonymousQuery<TRequest, TResponse, TFilter>(this IEndpointRouteBuilder builder, string pattern, Func<TFilter, TRequest> create)
+        where TRequest : class
+        where TResponse : class
+        where TFilter : PagedRequestDto
+        => builder.MapGet(pattern,
+            async (
+                [AsParameters] TFilter filter,
+                [FromServices] IQueryHandler<TRequest, Result<TResponse>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var request = create(filter);
+                var result = await handler.HandleAsync(request, cancellationToken);
+                return result.ToHttpResult();
+            }).AddEndpointFilter<ValidationEndpointFilter>()
+              .AllowAnonymous();
+
 
     public static RouteHandlerBuilder MapPutCommand<TRequest, TDto, TKey>(this IEndpointRouteBuilder builder, string pattern, Func<TKey, TDto, TRequest> create)
         where TRequest : class
