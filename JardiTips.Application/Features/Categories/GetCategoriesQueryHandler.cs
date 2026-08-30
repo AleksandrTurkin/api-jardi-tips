@@ -12,15 +12,18 @@ namespace JardiTips.Application.Features.Categories
 
     public class GetCategoriesQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContext) : BasePagedQueryHandler<CategoriesFilterDto, CategoryEntity>(unitOfWork), IQueryHandler<GetCategoriesQuery, Result<PagedResult<CategoryDto>>>
     {
-        public async Task<Result<PagedResult<CategoryDto>>> HandleAsync(GetCategoriesQuery query, CancellationToken ct = default)
+        public async Task<Result<PagedResult<CategoryDto>>> HandleAsync(GetCategoriesQuery request, CancellationToken ct = default)
         {
-            var result = await BaseHandle(query.Filters, Map, ct);
+            var result = await BaseHandle(request.Filters, Map, ct);
 
             return result;
         }
 
         protected override IQueryable<CategoryEntity> ModifyQuery(IQueryable<CategoryEntity> query, CategoriesFilterDto request)
         {
+            if (!authContext.IsAuthenticated())
+                return query.Where(x => x.OwnerUserId == null);
+
             var userId = authContext.GetUserId();
             return query.Where(x => x.OwnerUserId == userId || x.OwnerUserId == null);
         }
@@ -34,7 +37,8 @@ namespace JardiTips.Application.Features.Categories
                 Description = category.Description,
                 Type = category.Type,
                 TipsCount = category.TipsCount,
-                CoverImageUrl = category.CoverImageUrl
+                CoverImageUrl = category.CoverImageUrl,
+                UpdatedAt = category.UpdatedAt
             };
         }   
     }

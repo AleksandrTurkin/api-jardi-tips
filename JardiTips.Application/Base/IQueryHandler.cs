@@ -2,6 +2,6 @@
 
 public interface IQueryHandler<in TQuery, TResult>
 {
-    Task<TResult> HandleAsync(TQuery query, CancellationToken ct = default);
+    Task<TResult> HandleAsync(TQuery request, CancellationToken ct = default);
 }
 

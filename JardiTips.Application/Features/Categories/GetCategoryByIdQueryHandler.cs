@@ -12,18 +12,22 @@ namespace JardiTips.Application.Features.Categories
 
     public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContext) : IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>
     {
-        public async Task<Result<CategoryDto>> HandleAsync(GetCategoryByIdQuery query, CancellationToken ct = default)
+        public async Task<Result<CategoryDto>> HandleAsync(GetCategoryByIdQuery request, CancellationToken ct = default)
         {
-            var userId = authContext.GetUserId();
             var repository = unitOfWork.Repository<CategoryEntity>();
-            var category = await repository.FirstOrDefaultAsync(x => x.Id == query.Id && (x.OwnerUserId == null || x.OwnerUserId == userId), ct);
+
+            var query = authContext.IsAuthenticated() 
+                ? await repository.GetAllAsync(x => x.OwnerUserId == null || x.OwnerUserId == authContext.GetUserId(), ct)
+                : await repository.GetAllAsync(x => x.OwnerUserId == null, ct);
+
+            var category = query.FirstOrDefault(x => x.Id == request.Id);
 
             if (category == null)
-                return new ErrorDetail("category-not-found", $"Category with Id {query.Id} not found.", ErrorType.NotFound);
+                return new ErrorDetail("category-not-found", $"Category with Id {request.Id} not found.", ErrorType.NotFound);
             
             return Map(category);
         }
-
+        
         private static CategoryDto Map(CategoryEntity category)
         {
             return new CategoryDto

@@ -13,16 +13,16 @@ public record GetTipByIdQuery(Guid Id);
 public class GetTipByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContext)
     : IQueryHandler<GetTipByIdQuery, Result<TipDetailDto>>
 {
-    public async Task<Result<TipDetailDto>> HandleAsync(GetTipByIdQuery query, CancellationToken ct = default)
+    public async Task<Result<TipDetailDto>> HandleAsync(GetTipByIdQuery request, CancellationToken ct = default)
     {
         var userId = authContext.GetUserId();
         var repository = unitOfWork.Repository<TipEntity>();
         var tip = await repository.FirstOrDefaultAsync(
-            x => x.Id == query.Id && (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId),
+            x => x.Id == request.Id && (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId),
             ct);
 
         if (tip == null)
-            return new ErrorDetail("tip-not-found", $"Tip with Id {query.Id} not found.", ErrorType.NotFound);
+            return new ErrorDetail("tip-not-found", $"Tip with Id {request.Id} not found.", ErrorType.NotFound);
 
         return Map(tip);
     }

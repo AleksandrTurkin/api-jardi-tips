@@ -14,9 +14,9 @@ public class GetTipsQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContex
     : BasePagedQueryHandler<TipsFilterDto, TipEntity>(unitOfWork),
         IQueryHandler<GetTipsQuery, Result<PagedResult<TipDetailDto>>>
 {
-    public async Task<Result<PagedResult<TipDetailDto>>> HandleAsync(GetTipsQuery query, CancellationToken ct = default)
+    public async Task<Result<PagedResult<TipDetailDto>>> HandleAsync(GetTipsQuery request, CancellationToken ct = default)
     {
-        var result = await BaseHandle(query.Filters, Map, ct);
+        var result = await BaseHandle(request.Filters, Map, ct);
 
         return result;
     }
