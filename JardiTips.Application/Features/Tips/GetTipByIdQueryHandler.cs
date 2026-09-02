@@ -17,9 +17,10 @@ public class GetTipByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authCon
     {
         var userId = authContext.GetUserId();
         var repository = unitOfWork.Repository<TipEntity>();
-        var tip = await repository.FirstOrDefaultAsync(
-            x => x.Id == request.Id && (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId),
-            ct);
+        
+        var tip = authContext.IsAuthenticated()
+            ? await repository.FirstOrDefaultAsync(x => x.Id == request.Id && (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId), ct)
+            : await repository.FirstOrDefaultAsync(x => x.Id == request.Id && x.Category.OwnerUserId == null, ct);
 
         if (tip == null)
             return new ErrorDetail("tip-not-found", $"Tip with Id {request.Id} not found.", ErrorType.NotFound);

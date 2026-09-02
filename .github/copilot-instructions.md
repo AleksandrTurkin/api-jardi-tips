@@ -33,3 +33,7 @@
 - Do not move business rules into the Web API layer when they belong in Application or Domain.
 - Do not bypass `IUnitOfWork` and `IRepository<T>` without a clear reason already established in the codebase.
 - If you change endpoint wiring, verify the app still builds from the solution root.
+
+## UI Component Guidelines
+
+- For MudBlazor component spacing, prefer using MudBlazor utility classes such as `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, and `pe-*` directly in the component markup instead of scoped CSS overrides.

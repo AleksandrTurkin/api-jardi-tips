@@ -17,16 +17,17 @@ public class GetTipsQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContex
     public async Task<Result<PagedResult<TipDetailDto>>> HandleAsync(GetTipsQuery request, CancellationToken ct = default)
     {
         var result = await BaseHandle(request.Filters, Map, ct);
-
         return result;
     }
 
     protected override IQueryable<TipEntity> ModifyQuery(IQueryable<TipEntity> query, TipsFilterDto request)
     {
+        if (!authContext.IsAuthenticated())
+            return query.Where(x => x.CategoryId == request.CategoryId && x.Category.OwnerUserId == null);
+
         var userId = authContext.GetUserId();
-        return query.Where(x =>
-            x.CategoryId == request.CategoryId &&
-            (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId));
+        return query.Where(x => x.CategoryId == request.CategoryId &&
+                                        (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId));
     }
 
     private static TipDetailDto Map(TipEntity tip)
