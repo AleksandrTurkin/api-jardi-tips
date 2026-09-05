@@ -26,7 +26,7 @@ public static class AuthenticationExtensions
             .ValidateOnStart();
 
         services.AddScoped<IPasswordService, PasswordService>();
-        services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddHttpContextAccessor();
         services.AddScoped<IAuthContext, AuthContext>();
 
