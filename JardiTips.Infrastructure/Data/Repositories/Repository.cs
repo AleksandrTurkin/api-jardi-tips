@@ -71,14 +71,14 @@ namespace JardiTips.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<T>> GetPagerResultAsync(IQueryable<T> query, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken)
         {
-            query = query.OrderByDescending(x => x.CreatedAt)
+            query = query.OrderByDescending(x => EF.Property<DateTime>(x, nameof(IUpdatedEntity.UpdatedAt)))
                          .ThenByDescending(x => x.Id);
             
             if (dateTime == null || lastId == null)
                 return await query.Take(limit).AsNoTracking().ToListAsync(cancellationToken);
 
             query = query.Where(x => EF.Functions.LessThan(
-                ValueTuple.Create(x.CreatedAt, x.Id),
+                ValueTuple.Create(EF.Property<DateTime>(x, nameof(IUpdatedEntity.UpdatedAt)), x.Id),
                 ValueTuple.Create(dateTime, lastId)))
                 .Take(limit);
 

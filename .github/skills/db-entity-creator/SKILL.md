@@ -40,7 +40,8 @@ Use these files as the source pattern for style and conventions:
 
 Conventions to preserve:
 - Entity in Domain layer.
-- Entity inherits `BaseEntity` (provides `Id` and `CreatedAt`), required for cursor-based pagination.
+- Entity inherits `BaseEntity`, which provides `Id` and `CreatedAt`.
+- An entity intended for cursor-based pagination also implements `IUpdatedEntity` and declares `UpdatedAt`.
 - EF configuration in Infrastructure layer.
 - Mapping via `IEntityTypeConfiguration<T>`.
 - Required fields and max lengths configured with Fluent API.
@@ -95,12 +96,18 @@ Create in:
 Inheritance rule (mandatory):
 - The entity class must inherit `BaseEntity`: `public class <EntityName> : BaseEntity`.
 - `BaseEntity` (`JardiTips.Domain/Entities/BaseEntity.cs`) already provides `Guid Id` and `DateTime CreatedAt`. Do not redeclare them on the entity.
-- Inheriting `BaseEntity` is required for cursor-based pagination: `BasePagedQueryHandler` constrains `TEntity : BaseEntity` and builds the page cursor from `Id` and `CreatedAt`. An entity that does not inherit `BaseEntity` cannot be listed through the paged query handlers.
 - Mirror `CategoryEntity` (`JardiTips.Domain/Entities/CategoryEntity.cs`), which inherits `BaseEntity`.
+
+Pagination rule (mandatory when a paginated list handler will be generated):
+- Implement `IUpdatedEntity`: `public class <EntityName> : BaseEntity, IUpdatedEntity`.
+- Declare `public DateTime UpdatedAt { get; set; }` on the entity; do not move it to `BaseEntity`.
+- `BasePagedQueryHandler` constrains `TEntity : BaseEntity, IUpdatedEntity` and builds the page cursor from `UpdatedAt` and `Id`.
+- Shared pagination orders by `UpdatedAt` descending and then `Id` descending. Do not describe or generate `CreatedAt`-based cursor ordering.
+- Treat entities created through the `api-features` agent as paginated because that workflow always creates a get-list handler.
 
 Apply these defaults unless user says otherwise:
 - `Id` and `CreatedAt` are inherited from `BaseEntity` (do not redeclare).
-- `DateTime UpdatedAt` on the entity when the entity is mutable.
+- `DateTime UpdatedAt` on mutable or paginated entities.
 - Additional properties from user field definitions.
 
 Map user field descriptions into concise XML comments only when clarification is needed for non-obvious fields.
@@ -113,6 +120,7 @@ Required mapping steps:
 - `ToTable("<PluralTableName>")`.
 - `HasKey(x => x.Id)`.
 - `Property(x => x.Id).ValueGeneratedOnAdd()`.
+- For paginated entities, configure `Property(x => x.UpdatedAt).IsRequired()`.
 - Per-property constraints from input (required/optional, max length, and column type/defaults only when explicitly requested or already standard in repo).
 
 Do not add speculative indexes/relationships unless requested.
@@ -150,6 +158,7 @@ Rollback constraints:
 Completion criteria:
 - Entity class exists and compiles.
 - Entity inherits `BaseEntity` and does not redeclare `Id`/`CreatedAt`.
+- If a paginated list handler is planned, the entity implements `IUpdatedEntity`, declares `UpdatedAt`, and maps it as required.
 - Configuration class exists and compiles.
 - Migration files created.
 - No unrelated file rewrites.

@@ -74,12 +74,14 @@ Example for `User` and `Users`:
 ## Cursor Pagination Rules (Mandatory)
 List queries use cursor-based (keyset) pagination, not offset/skip paging.
 
+- The paginated entity must inherit `BaseEntity`, implement `IUpdatedEntity`, and declare `DateTime UpdatedAt`.
 - The get-list handler must inherit `BasePagedQueryHandler<<FeatureFolderName>FilterDto, <EntityName>Entity>` from `JardiTips.Application/Features/Base/BasePagedQueryHandler.cs`.
 - Call the inherited `BaseHandle(query.Filters, Map, ct)` to produce the paged result instead of querying the repository directly.
 - The handler returns `Result<PagedResult<<EntityName>Dto>>`; assign the `BaseHandle` output directly to the result (implicit `Result` conversion).
 - Provide a private static `Map(<EntityName>Entity entity)` method that projects the entity to `<EntityName>Dto`.
 - Apply entity-specific filtering by overriding `protected override IQueryable<<EntityName>Entity> ModifyQuery(IQueryable<<EntityName>Entity> query, <FeatureFolderName>FilterDto request)`; do not re-implement cursor/limit logic (the base class owns cursor decoding, limit + 1 look-ahead, and `PageContext` encoding).
 - The list query record wraps the filter DTO, for example `public record Get<FeatureFolderName>Query(<FeatureFolderName>FilterDto Filters);`.
+- Shared pagination orders by `UpdatedAt` descending and then `Id` descending. Do not add handler-level ordering or create cursors from `CreatedAt`.
 
 Reference pattern:
 - `JardiTips.Application/Features/Categories/GetCategoriesQueryHandler.cs`
@@ -101,6 +103,13 @@ Usage expectations by handler type:
 - Get list: inherit `BasePagedQueryHandler`, call `BaseHandle(...)` with a `Map` projection, and override `ModifyQuery` for filtering; do not query the repository directly for cursor paging.
 - Get by id: load via repository, validate existence, map to DTO.
 - Update: load by id, mutate fields, then `SaveChangesAsync(...)`.
+
+## Timestamp Lifecycle Rules (Mandatory)
+- In create handlers, capture one `var now = DateTime.UtcNow` value and assign it to both `CreatedAt` and `UpdatedAt` on the new entity.
+- In update handlers, assign `UpdatedAt = DateTime.UtcNow` after applying accepted mutations and before `SaveChangesAsync(...)`.
+- Do not change `CreatedAt` during updates.
+- Include `UpdatedAt` in output DTO mappings when the output DTO exposes that field.
+- These rules keep `UpdatedAt`-based pagination order and continuation cursors consistent with entity mutations.
 
 ## Validation Rules (Mandatory)
 Validate inside the handler using guard clauses. Do not add a separate validation framework or abstraction (neither third-party like FluentValidation nor a homegrown `Validator<T>`) unless rules become substantial and repetitive.
@@ -203,6 +212,8 @@ Reference DTOs:
 - Command handlers implement `ICommandHandler`.
 - Handler return contracts follow the Result Pattern (`Result`/`Result<T>`), and the get-list handler returns `Result<PagedResult<<EntityName>Dto>>`.
 - Get-list handler inherits `BasePagedQueryHandler` and uses `BaseHandle` for cursor pagination.
+- Paginated entity inherits `BaseEntity`, implements `IUpdatedEntity`, and exposes `UpdatedAt`.
+- Create handler initializes `CreatedAt` and `UpdatedAt` from the same UTC timestamp; update handler refreshes only `UpdatedAt`.
 - Filter DTO extends `PagedRequestDto`.
 - DTO usage is consistent and compiles.
 - All required DTOs for create, update, item response, and list filter are present.

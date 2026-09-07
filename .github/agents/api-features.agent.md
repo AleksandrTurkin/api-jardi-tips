@@ -1,7 +1,6 @@
 ---
 name: api-features
 description: "Orchestrate full API feature creation in JardiTips from entity input: create DB entity and migration, generate CQRS handlers, and add Web API endpoint using project skills db-entity-creator, command-query-handler-creator, and api-endpoint-creator."
-tools: [read, edit, search, execute, todo]
 argument-hint: "EntityName (singular preferred), properties with types/constraints, and optional route/folder names"
 user-invocable: true
 ---
@@ -31,12 +30,16 @@ User provides:
 3. If entity already exists, stop execution immediately and report no changes.
 4. Run `command-query-handler-creator` for 5-handler CQRS set in plural feature folder.
 5. Run `api-endpoint-creator` to create endpoint implementing `IEndpoint` with extension-based mapping.
-6. Build the solution and fix only issues introduced by this run.
-7. Return a final summary of files created/updated and any skipped steps.
+6. Verify the generated entity satisfies the shared pagination contract before building.
+7. Build the solution and fix only issues introduced by this run.
+8. Return a final summary of files created/updated and any skipped steps.
 
 ## Coordination Rules
 - Keep edits aligned with Clean Architecture boundaries.
 - Reuse existing patterns in Categories and existing skills.
+- Every generated feature includes a paginated list handler, so its entity must inherit `BaseEntity`, implement `IUpdatedEntity`, and declare a required `UpdatedAt` property.
+- Create handlers must initialize `CreatedAt` and `UpdatedAt` from the same UTC timestamp, and update handlers must refresh `UpdatedAt` without changing `CreatedAt`.
+- Shared list pagination orders and creates cursors by `UpdatedAt` descending and then `Id` descending; do not generate feature-specific cursor ordering.
 - Follow naming consistency:
 - Entity class and handlers use singular entity naming.
 - Feature folder and route segment use plural naming.
@@ -53,8 +56,8 @@ User provides:
 
 ## Delegation Notes
 When invoking each skill, pass concise, explicit parameters:
-- `db-entity-creator`: entity name and field schema.
-- `command-query-handler-creator`: entity name, plural feature folder, DTO plan.
+- `db-entity-creator`: entity name, field schema, and explicit requirement for a paginated list entity implementing `IUpdatedEntity`.
+- `command-query-handler-creator`: entity name, plural feature folder, DTO plan, and required `UpdatedAt` timestamp lifecycle.
 - `api-endpoint-creator`: entity name, route segment, feature namespace, command/query + DTO types.
 
 ## Output Format

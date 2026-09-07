@@ -1,6 +1,6 @@
 namespace JardiTips.Domain.Entities;
 
-public class TipEntity : BaseEntity
+public class TipEntity : BaseEntity, IUpdatedEntity
 {
     public string Title { get; set; }
 

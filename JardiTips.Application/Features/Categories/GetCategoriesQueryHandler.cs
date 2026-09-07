@@ -21,11 +21,7 @@ namespace JardiTips.Application.Features.Categories
 
         protected override IQueryable<CategoryEntity> ModifyQuery(IQueryable<CategoryEntity> query, CategoriesFilterDto request)
         {
-            if (!authContext.IsAuthenticated())
-                return query.Where(x => x.OwnerUserId == null);
-
-            var userId = authContext.GetUserId();
-            return query.Where(x => x.OwnerUserId == userId || x.OwnerUserId == null);
+            return query.Where(x => x.OwnerUserId == null);
         }
 
         private static CategoryDto Map(CategoryEntity category) 

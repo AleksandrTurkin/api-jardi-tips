@@ -2,7 +2,7 @@
 
 namespace JardiTips.Domain.Entities;
 
-public class CategoryEntity : BaseEntity
+public class CategoryEntity : BaseEntity, IUpdatedEntity
 {
     public string Name { get; set; }
 

@@ -14,6 +14,7 @@ namespace JardiTips.WebApi.Endpoints
             services.AddScoped<ICommandHandler<CreateCategoryCommand, Result<Guid>>, CreateCategoryCommandHandler>();
             services.AddScoped<IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>, GetCategoryByIdQueryHandler>();
             services.AddScoped<IQueryHandler<GetCategoriesQuery, Result<PagedResult<CategoryDto>>>, GetCategoriesQueryHandler>();
+            services.AddScoped<IQueryHandler<GetUserCategoriesQuery, Result<UserCategoriesDto>>, GetUserCategoriesQueryHandler>();
             services.AddScoped<ICommandHandler<UpdateCategoryCommand, Result>, UpdateCategoryCommandHandler>();
             services.AddScoped<ICommandHandler<DeleteCategoryCommand, Result>, DeleteCategoryCommandHandler>();
         }
@@ -27,6 +28,10 @@ namespace JardiTips.WebApi.Endpoints
             group.MapGetFilterAnonymousQuery<GetCategoriesQuery, PagedResult<CategoryDto>, CategoriesFilterDto >("", filters => new GetCategoriesQuery(filters));
             group.MapPutCommand<UpdateCategoryCommand, UpdateCategoryDto, Guid>("{id:guid}", (id, dto) => new UpdateCategoryCommand(id, dto));
             group.MapDeleteCommand<DeleteCategoryCommand, Guid>("{id:guid}", id => new DeleteCategoryCommand(id));
+
+            var userCategoriesGroup = builder.MapGroup("/user/categories").WithTags("Category");
+
+            userCategoriesGroup.MapGetFilterQuery<GetUserCategoriesQuery, UserCategoriesDto, CategoriesFilterDto>("", filters => new GetUserCategoriesQuery(filters));
         }
     }
 }

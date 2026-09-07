@@ -5,7 +5,7 @@ using JardiTips.Domain.Entities;
 namespace JardiTips.Application.Features.Base;
 
 public abstract class BasePagedQueryHandler<TQuery, TEntity>(IUnitOfWork unitOfWork)
-    where TEntity : BaseEntity
+    where TEntity : BaseEntity, IUpdatedEntity
     where TQuery : PagedRequestDto
 {
     private readonly int DefaultLimit = 15;
@@ -28,7 +28,7 @@ public abstract class BasePagedQueryHandler<TQuery, TEntity>(IUnitOfWork unitOfW
             items.RemoveAt(items.Count - 1);
 
         var cursor = hasMore
-            ? PagedCursor.Encode(items[^1].CreatedAt, items[^1].Id)
+            ? PagedCursor.Encode(items[^1].UpdatedAt, items[^1].Id)
             : null;
         
         return new PagedResult<TDto>(cursor, items.Select(map).ToList());
