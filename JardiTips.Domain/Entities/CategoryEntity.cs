@@ -14,8 +14,6 @@ public class CategoryEntity : BaseEntity, IUpdatedEntity
 
     public CategoryType Type { get; set; }
 
-    public int TipsCount { get; set; }
-
     public string? CoverImageUrl { get; set; }
 
     public string? LanguageCode { get; set; }

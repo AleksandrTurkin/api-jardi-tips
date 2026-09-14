@@ -5,6 +5,7 @@ using JardiTips.Application.Features.Base;
 using JardiTips.Application.Features.Categories.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace JardiTips.Application.Features.Categories
 {
@@ -14,7 +15,7 @@ namespace JardiTips.Application.Features.Categories
     {
         public async Task<Result<PagedResult<CategoryDto>>> HandleAsync(GetCategoriesQuery request, CancellationToken ct = default)
         {
-            var result = await BaseHandle(request.Filters, Map, ct);
+            var result = await BaseHandle(request.Filters, Projection, ct);
 
             return result;
         }
@@ -24,18 +25,16 @@ namespace JardiTips.Application.Features.Categories
             return query.Where(x => x.OwnerUserId == null);
         }
 
-        private static CategoryDto Map(CategoryEntity category) 
-        {
-            return new CategoryDto
+        private static readonly Expression<Func<CategoryEntity, CategoryDto>> Projection = category =>
+            new CategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
                 Type = category.Type,
-                TipsCount = category.TipsCount,
+                TipsCount = category.Tips.Count(),
                 CoverImageUrl = category.CoverImageUrl,
                 UpdatedAt = category.UpdatedAt
             };
-        }   
     }
 }

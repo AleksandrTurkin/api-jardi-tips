@@ -5,6 +5,7 @@ using JardiTips.Application.Features.Tips.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
 using JardiTips.Domain.Enums;
+using System.Linq.Expressions;
 
 namespace JardiTips.Application.Features.Tips;
 
@@ -19,18 +20,23 @@ public class GetTipByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authCon
         var repository = unitOfWork.Repository<TipEntity>();
         
         var tip = authContext.IsAuthenticated()
-            ? await repository.FirstOrDefaultAsync(x => x.Id == request.Id && (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId), ct)
-            : await repository.FirstOrDefaultAsync(x => x.Id == request.Id && x.Category.OwnerUserId == null, ct);
+            ? await repository.FirstOrDefaultAsync(
+                x => x.Id == request.Id && (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId),
+                Projection,
+                ct)
+            : await repository.FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.Category.OwnerUserId == null,
+                Projection,
+                ct);
 
         if (tip == null)
             return new ErrorDetail("tip-not-found", $"Tip with Id {request.Id} not found.", ErrorType.NotFound);
 
-        return Map(tip);
+        return tip;
     }
 
-    private static TipDetailDto Map(TipEntity tip)
-    {
-        return new TipDetailDto
+    private static readonly Expression<Func<TipEntity, TipDetailDto>> Projection = tip =>
+        new TipDetailDto
         {
             Id = tip.Id,
             Title = tip.Title,
@@ -39,5 +45,4 @@ public class GetTipByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authCon
             CreatedAt = tip.CreatedAt,
             UpdatedAt = tip.UpdatedAt
         };
-    }
 }

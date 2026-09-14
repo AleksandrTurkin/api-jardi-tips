@@ -1,6 +1,8 @@
+using JardiTips.Application.Base;
+
 namespace JardiTips.Application.Features.Tips.Models;
 
-public class TipDetailDto
+public class TipDetailDto : IPagedItemDto
 {
     public Guid Id { get; set; }
 

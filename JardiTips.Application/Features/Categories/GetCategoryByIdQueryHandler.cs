@@ -5,6 +5,7 @@ using JardiTips.Application.Features.Categories.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
 using JardiTips.Domain.Enums;
+using System.Linq.Expressions;
 
 namespace JardiTips.Application.Features.Categories
 {
@@ -16,26 +17,27 @@ namespace JardiTips.Application.Features.Categories
         {
             var repository = unitOfWork.Repository<CategoryEntity>();
 
-            var category = await repository.FirstOrDefaultAsync(x => x.Id == request.Id && x.OwnerUserId == null, ct);
+            var category = await repository.FirstOrDefaultAsync(
+                x => x.Id == request.Id && x.OwnerUserId == null,
+                Projection,
+                ct);
 
             if (category == null)
                 return new ErrorDetail("category-not-found", $"Category with Id {request.Id} not found.", ErrorType.NotFound);
             
-            return Map(category);
+            return category;
         }
-        
-        private static CategoryDto Map(CategoryEntity category)
-        {
-            return new CategoryDto
+
+        private static readonly Expression<Func<CategoryEntity, CategoryDto>> Projection = category =>
+            new CategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
                 Type = category.Type,
-                TipsCount = category.TipsCount,
+                TipsCount = category.Tips.Count(),
                 CoverImageUrl = category.CoverImageUrl,
                 UpdatedAt = category.UpdatedAt
             };
-        }
     }
 }

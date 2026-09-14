@@ -6,6 +6,7 @@ using JardiTips.Application.Features.Categories.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
 using JardiTips.Domain.Enums;
+using System.Linq.Expressions;
 
 namespace JardiTips.Application.Features.Categories;
 
@@ -20,13 +21,14 @@ public class GetUserCategoriesQueryHandler(IUnitOfWork unitOfWork, IAuthContext 
         var userId = authContext.GetUserId();
         var repository = unitOfWork.Repository<CategoryEntity>();
 
-        var favorite = await repository.FirstOrDefaultAsync(x => x.OwnerUserId == userId && x.Type == CategoryType.Favorites, ct);
+        var favorite = await repository.FirstOrDefaultAsync(
+            x => x.OwnerUserId == userId && x.Type == CategoryType.Favorites,
+            Projection,
+            ct);
 
-        var categories = await BaseHandle(request.Filters, Map, ct);
+        var categories = await BaseHandle(request.Filters, Projection, ct);
 
-        return new UserCategoriesDto(
-            favorite is null ? null : Map(favorite), 
-            categories);
+        return new UserCategoriesDto(favorite, categories);
     }
 
     protected override IQueryable<CategoryEntity> ModifyQuery(IQueryable<CategoryEntity> query, CategoriesFilterDto request)
@@ -35,17 +37,15 @@ public class GetUserCategoriesQueryHandler(IUnitOfWork unitOfWork, IAuthContext 
         return query.Where(x => x.OwnerUserId == userId && x.Type == CategoryType.User);
     }
 
-    private static CategoryDto Map(CategoryEntity category)
-    {
-        return new CategoryDto
+    private static readonly Expression<Func<CategoryEntity, CategoryDto>> Projection = category =>
+        new CategoryDto
         {
             Id = category.Id,
             Name = category.Name,
             Description = category.Description,
             Type = category.Type,
-            TipsCount = category.TipsCount,
+            TipsCount = category.Tips.Count(),
             CoverImageUrl = category.CoverImageUrl,
             UpdatedAt = category.UpdatedAt
         };
-    }
 }

@@ -37,3 +37,7 @@
 ## UI Component Guidelines
 
 - For MudBlazor component spacing, prefer using MudBlazor utility classes such as `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, and `pe-*` directly in the component markup instead of scoped CSS overrides.
+
+## Code Style
+
+- Prefer the existing `do...while` style over `while (true)` for cursor-pagination loops in JardiTips client API sources because it is more readable and maintainable.

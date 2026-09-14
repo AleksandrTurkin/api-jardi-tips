@@ -1,8 +1,9 @@
 ﻿using JardiTips.Domain.Enums;
+using JardiTips.Application.Base;
 
 namespace JardiTips.Application.Features.Categories.Models
 {
-    public class CategoryDto
+    public class CategoryDto : IPagedItemDto
     {
         public Guid Id { get; set; }
 

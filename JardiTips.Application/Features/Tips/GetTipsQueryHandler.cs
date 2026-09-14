@@ -5,6 +5,7 @@ using JardiTips.Application.Features.Base;
 using JardiTips.Application.Features.Tips.Models;
 using JardiTips.Domain.Common;
 using JardiTips.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace JardiTips.Application.Features.Tips;
 
@@ -16,7 +17,7 @@ public class GetTipsQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContex
 {
     public async Task<Result<PagedResult<TipDetailDto>>> HandleAsync(GetTipsQuery request, CancellationToken ct = default)
     {
-        var result = await BaseHandle(request.Filters, Map, ct);
+        var result = await BaseHandle(request.Filters, Projection, ct);
         return result;
     }
 
@@ -30,9 +31,8 @@ public class GetTipsQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContex
                                         (x.Category.OwnerUserId == null || x.Category.OwnerUserId == userId));
     }
 
-    private static TipDetailDto Map(TipEntity tip)
-    {
-        return new TipDetailDto
+    private static readonly Expression<Func<TipEntity, TipDetailDto>> Projection = tip =>
+        new TipDetailDto
         {
             Id = tip.Id,
             Title = tip.Title,
@@ -41,5 +41,4 @@ public class GetTipsQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContex
             CreatedAt = tip.CreatedAt,
             UpdatedAt = tip.UpdatedAt
         };
-    }
 }

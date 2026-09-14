@@ -17,7 +17,7 @@ namespace JardiTips.Application.DataAccess
 
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
 
-        Task<IEnumerable<T>> GetPagerResultAsync(IQueryable<T> query, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken);
+        Task<IEnumerable<TResult>> GetPagerResultAsync<TResult>(IQueryable<T> query, Expression<Func<T, TResult>> selector, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken);
 
         Task AddAsync(T entity, CancellationToken cancellationToken);
 
@@ -36,6 +36,8 @@ namespace JardiTips.Application.DataAccess
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
 
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
+
+        Task<TResult?> FirstOrDefaultAsync<TResult>(Expression<Func<T, bool>> predicate, Expression<Func<T, TResult>> selector, CancellationToken cancellationToken);
 
         IQueryable<T> Where(Expression<Func<T, bool>> predicate);
 

@@ -1,6 +1,7 @@
 ﻿using JardiTips.Application.Base;
 using JardiTips.Application.DataAccess;
 using JardiTips.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace JardiTips.Application.Features.Base;
 
@@ -10,18 +11,18 @@ public abstract class BasePagedQueryHandler<TQuery, TEntity>(IUnitOfWork unitOfW
 {
     private readonly int DefaultLimit = 15;
 
-    protected async Task<PagedResult<TDto>> BaseHandle<TDto>(TQuery request, Func<TEntity, TDto> map, CancellationToken cancellationToken)
+    protected async Task<PagedResult<TDto>> BaseHandle<TDto>(TQuery request, Expression<Func<TEntity, TDto>> selector, CancellationToken cancellationToken)
+        where TDto : IPagedItemDto
     {
         var repository = unitOfWork.Repository<TEntity>();
 
         var query = repository.GetAll();
         query = ModifyQuery(query, request);
 
-
         var pageContext = ParsePageContext(request.PageContext);
 
         var limit = request.Limit ?? DefaultLimit;
-        var items = (await repository.GetPagerResultAsync(query, pageContext.DateTime, pageContext.LastId, limit + 1, cancellationToken)).ToList();
+        var items = (await repository.GetPagerResultAsync(query, selector, pageContext.DateTime, pageContext.LastId, limit + 1, cancellationToken)).ToList();
 
         var hasMore = items.Count > limit;
         if (hasMore)
@@ -31,7 +32,7 @@ public abstract class BasePagedQueryHandler<TQuery, TEntity>(IUnitOfWork unitOfW
             ? PagedCursor.Encode(items[^1].UpdatedAt, items[^1].Id)
             : null;
         
-        return new PagedResult<TDto>(cursor, items.Select(map).ToList());
+        return new PagedResult<TDto>(cursor, items);
     }
 
     private (DateTime? DateTime, Guid? LastId) ParsePageContext(string? pageContext)

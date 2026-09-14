@@ -69,20 +69,23 @@ namespace JardiTips.Infrastructure.Data.Repositories
             return await DbSet.Where(predicate).ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<T>> GetPagerResultAsync(IQueryable<T> query, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken)
+        public async Task<IEnumerable<TResult>> GetPagerResultAsync<TResult>(IQueryable<T> query, Expression<Func<T, TResult>> selector, DateTime? dateTime, Guid? lastId, int limit, CancellationToken cancellationToken)
         {
             query = query.OrderByDescending(x => EF.Property<DateTime>(x, nameof(IUpdatedEntity.UpdatedAt)))
                          .ThenByDescending(x => x.Id);
-            
-            if (dateTime == null || lastId == null)
-                return await query.Take(limit).AsNoTracking().ToListAsync(cancellationToken);
 
-            query = query.Where(x => EF.Functions.LessThan(
-                ValueTuple.Create(EF.Property<DateTime>(x, nameof(IUpdatedEntity.UpdatedAt)), x.Id),
-                ValueTuple.Create(dateTime, lastId)))
-                .Take(limit);
+            if (dateTime != null && lastId != null)
+            {
+                query = query.Where(x => EF.Functions.LessThan(
+                    ValueTuple.Create(EF.Property<DateTime>(x, nameof(IUpdatedEntity.UpdatedAt)), x.Id),
+                    ValueTuple.Create(dateTime, lastId)));
+            }
 
-            return await query.AsNoTracking().ToListAsync(cancellationToken);
+            return await query
+                .Take(limit)
+                .AsNoTracking()
+                .Select(selector)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task AddAsync(T entity, CancellationToken cancellationToken)
@@ -131,6 +134,15 @@ namespace JardiTips.Infrastructure.Data.Repositories
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
         {
             return await DbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+        }
+
+        public async Task<TResult?> FirstOrDefaultAsync<TResult>(Expression<Func<T, bool>> predicate, Expression<Func<T, TResult>> selector, CancellationToken cancellationToken)
+        {
+            return await DbSet
+                .Where(predicate)
+                .AsNoTracking()
+                .Select(selector)
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
         public IQueryable<T> Where(Expression<Func<T, bool>> predicate)
