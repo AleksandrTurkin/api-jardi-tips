@@ -13,6 +13,8 @@ namespace JardiTips.Application.Features.Categories
 
     public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContext) : IQueryHandler<GetCategoryByIdQuery, Result<CategoryDto>>
     {
+        private readonly Guid? _userId = authContext.IsAuthenticated() ? authContext.GetUserId() : null;
+
         public async Task<Result<CategoryDto>> HandleAsync(GetCategoryByIdQuery request, CancellationToken ct = default)
         {
             var repository = unitOfWork.Repository<CategoryEntity>();
@@ -24,11 +26,11 @@ namespace JardiTips.Application.Features.Categories
 
             if (category == null)
                 return new ErrorDetail("category-not-found", $"Category with Id {request.Id} not found.", ErrorType.NotFound);
-            
+
             return category;
         }
 
-        private static readonly Expression<Func<CategoryEntity, CategoryDto>> Projection = category =>
+        private Expression<Func<CategoryEntity, CategoryDto>> Projection => category =>
             new CategoryDto
             {
                 Id = category.Id,
@@ -36,6 +38,8 @@ namespace JardiTips.Application.Features.Categories
                 Description = category.Description,
                 Type = category.Type,
                 TipsCount = category.Tips.Count(),
+                LikesCount = category.Likes.Count(),
+                IsLiked = _userId.HasValue && category.Likes.Any(x => x.UserId == _userId.Value),
                 CoverImageUrl = category.CoverImageUrl,
                 UpdatedAt = category.UpdatedAt
             };

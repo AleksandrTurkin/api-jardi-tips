@@ -14,15 +14,16 @@ public record GetUserCategoriesQuery(CategoriesFilterDto Filters);
 
 public class GetUserCategoriesQueryHandler(IUnitOfWork unitOfWork, IAuthContext authContext) : BasePagedQueryHandler<CategoriesFilterDto, CategoryEntity>(unitOfWork), IQueryHandler<GetUserCategoriesQuery, Result<UserCategoriesDto>>
 {
+    private readonly Guid _userId = authContext.GetUserId();
+
     public async Task<Result<UserCategoriesDto>> HandleAsync(
         GetUserCategoriesQuery request,
         CancellationToken ct = default)
     {
-        var userId = authContext.GetUserId();
         var repository = unitOfWork.Repository<CategoryEntity>();
 
         var favorite = await repository.FirstOrDefaultAsync(
-            x => x.OwnerUserId == userId && x.Type == CategoryType.Favorites,
+            x => x.OwnerUserId == _userId && x.Type == CategoryType.Favorites,
             Projection,
             ct);
 
@@ -33,8 +34,7 @@ public class GetUserCategoriesQueryHandler(IUnitOfWork unitOfWork, IAuthContext 
 
     protected override IQueryable<CategoryEntity> ModifyQuery(IQueryable<CategoryEntity> query, CategoriesFilterDto request)
     {
-        var userId = authContext.GetUserId();
-        return query.Where(x => x.OwnerUserId == userId && x.Type == CategoryType.User);
+        return query.Where(x => x.OwnerUserId == _userId && x.Type == CategoryType.User);
     }
 
     private static readonly Expression<Func<CategoryEntity, CategoryDto>> Projection = category =>

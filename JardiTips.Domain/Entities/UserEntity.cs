@@ -11,4 +11,6 @@ public class UserEntity : BaseEntity
     public string? PasswordHash { get; set; }
 
     public ICollection<UserLoginEntity> Logins { get; set; } = [];
+
+    public ICollection<CategoryLikeEntity> CategoryLikes { get; set; } = [];
 }

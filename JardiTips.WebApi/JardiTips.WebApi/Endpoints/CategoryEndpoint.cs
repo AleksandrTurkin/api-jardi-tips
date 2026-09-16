@@ -17,6 +17,8 @@ namespace JardiTips.WebApi.Endpoints
             services.AddScoped<IQueryHandler<GetUserCategoriesQuery, Result<UserCategoriesDto>>, GetUserCategoriesQueryHandler>();
             services.AddScoped<ICommandHandler<UpdateCategoryCommand, Result>, UpdateCategoryCommandHandler>();
             services.AddScoped<ICommandHandler<DeleteCategoryCommand, Result>, DeleteCategoryCommandHandler>();
+            services.AddScoped<ICommandHandler<LikeCategoryCommand, Result>, LikeCategoryCommandHandler>();
+            services.AddScoped<ICommandHandler<UnlikeCategoryCommand, Result>, UnlikeCategoryCommandHandler>();
         }
 
         public void Map(IEndpointRouteBuilder builder)
@@ -28,6 +30,8 @@ namespace JardiTips.WebApi.Endpoints
             group.MapGetFilterAnonymousQuery<GetCategoriesQuery, PagedResult<CategoryDto>, CategoriesFilterDto >("", filters => new GetCategoriesQuery(filters));
             group.MapPutCommand<UpdateCategoryCommand, UpdateCategoryDto, Guid>("{id:guid}", (id, dto) => new UpdateCategoryCommand(id, dto));
             group.MapDeleteCommand<DeleteCategoryCommand, Guid>("{id:guid}", id => new DeleteCategoryCommand(id));
+            group.MapPutCommand<LikeCategoryCommand, Guid>("{id:guid}/likes/me", id => new LikeCategoryCommand(id));
+            group.MapDeleteCommand<UnlikeCategoryCommand, Guid>("{id:guid}/likes/me", id => new UnlikeCategoryCommand(id));
 
             var userCategoriesGroup = builder.MapGroup("/user/categories").WithTags("Category");
 

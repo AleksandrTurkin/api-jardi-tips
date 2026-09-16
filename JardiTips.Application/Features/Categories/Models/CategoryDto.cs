@@ -15,6 +15,10 @@ namespace JardiTips.Application.Features.Categories.Models
 
         public int TipsCount { get; set; }
 
+        public int LikesCount { get; set; }
+
+        public bool IsLiked { get; set; }
+
         public string? CoverImageUrl { get; set; }
 
         public DateTime UpdatedAt { get; set; }

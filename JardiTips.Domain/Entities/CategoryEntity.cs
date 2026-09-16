@@ -19,4 +19,6 @@ public class CategoryEntity : BaseEntity, IUpdatedEntity
     public string? LanguageCode { get; set; }
 
     public ICollection<TipEntity> Tips { get; set; } = [];
+
+    public ICollection<CategoryLikeEntity> Likes { get; set; } = [];
 }

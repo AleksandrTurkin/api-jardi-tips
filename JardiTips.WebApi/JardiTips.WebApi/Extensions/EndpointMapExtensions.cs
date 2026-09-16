@@ -121,6 +121,19 @@ public static class EndpointMapExtensions
                 return result.ToHttpResult();
             }).AddEndpointFilter<ValidationEndpointFilter>();
 
+    public static RouteHandlerBuilder MapPutCommand<TRequest, TKey>(this IEndpointRouteBuilder builder, string pattern,
+        Func<TKey, TRequest> create)
+        where TRequest : class
+        => builder.MapPut(pattern, async (
+                TKey id,
+                [FromServices] ICommandHandler<TRequest, Result> handler,
+                CancellationToken cancellationToken) =>
+        {
+            var request = create(id);
+            var result = await handler.HandleAsync(request, cancellationToken);
+            return result.ToHttpResult();
+        });
+
 
     public static RouteHandlerBuilder MapDeleteCommand<TRequest, TKey>(this IEndpointRouteBuilder builder, string pattern,
         Func<TKey, TRequest> create)
