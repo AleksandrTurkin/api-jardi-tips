@@ -14,6 +14,10 @@
 - Requests flow through endpoint classes into CQRS handlers in `JardiTips.Application`.
 - Data access goes through `IUnitOfWork` and `IRepository<T>`, then EF Core in `JardiTips.Infrastructure`.
 
+## Security
+
+- JWT authorization is required by a global fallback policy; use the existing secure-by-default convention instead of adding redundant per-endpoint `RequireAuthorization()` calls for normal authenticated mutation routes.
+
 ## DTO conventions
 
 - Define request/input DTOs as positional `record` types, not classes with mutable properties.
