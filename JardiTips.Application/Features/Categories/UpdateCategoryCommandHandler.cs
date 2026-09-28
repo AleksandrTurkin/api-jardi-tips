@@ -16,7 +16,7 @@ namespace JardiTips.Application.Features.Categories
         {
             var userId = authContext.GetUserId();
             var repository = unitOfWork.Repository<CategoryEntity>();
-            var dbCategory = await repository.FirstOrDefaultAsync(c => c.Id == command.Id && c.OwnerUserId == userId, ct);
+            var dbCategory = await repository.FirstOrDefaultAsync(c => c.Id == command.Id && c.OwnerUserId == userId && c.Type == CategoryType.User, ct);
 
             if (dbCategory == null)
                 return new ErrorDetail("category-not-found", "The category was not found.", ErrorType.NotFound);

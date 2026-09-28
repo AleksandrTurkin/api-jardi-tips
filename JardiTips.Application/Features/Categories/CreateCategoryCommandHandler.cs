@@ -12,44 +12,26 @@ namespace JardiTips.Application.Features.Categories
 
     public class CreateCategoryCommandHandler(IUnitOfWork unitOfWork, IAuthContext authContext) : ICommandHandler<CreateCategoryCommand, Result<Guid>>
     {
+        //todo move to the user limits service
+        private const int MaxUserCategories = 10;
+
         public async Task<Result<Guid>> HandleAsync(CreateCategoryCommand command, CancellationToken ct = default)
         {
-            var validationResult = Validate(command);
-            if (validationResult.IsFailure)
-                return validationResult.Error!;
-
             var repository = unitOfWork.Repository<CategoryEntity>();
-
-            var favoriteCategory = await GetFavoriteCategory(command, repository, ct);
-            if (favoriteCategory != null)
-                return favoriteCategory.Id;
 
             var userId = authContext.GetUserId();
             var category = Map(command);
             category.OwnerUserId = userId;
 
+            //todo move to the user limits service
+            var categoryCount = (await repository.GetAllAsync(x => x.OwnerUserId == userId && x.Type == CategoryType.User, ct)).Count();
+            if (categoryCount >= MaxUserCategories)
+                return new ErrorDetail("category-limit-reached", "You cannot create more than 10 collections.", ErrorType.ValidationError);
+
             await repository.AddAsync(category, ct);
             await unitOfWork.SaveChangesAsync(ct);
 
             return category.Id;
-        }
-
-        private static Result Validate(CreateCategoryCommand command)
-        {
-            if (command.Category.Type == CategoryType.System)
-                return new ErrorDetail("category-type-not-allowed", "Categories of type 'System' cannot be created by users.", ErrorType.ValidationError);
-
-            return Result.Success();
-        }
-
-        private async Task<CategoryEntity?> GetFavoriteCategory(CreateCategoryCommand command, IRepository<CategoryEntity> repository, CancellationToken ct)
-        {
-            if (command.Category.Type != CategoryType.Favorites)
-                return null;
-
-            var userId = authContext.GetUserId();
-            var dbFavoriteCategory = await repository.FirstOrDefaultAsync(r => r.OwnerUserId == userId && r.Type == CategoryType.Favorites, ct);
-            return dbFavoriteCategory;
         }
 
         private static CategoryEntity Map(CreateCategoryCommand command)
@@ -58,7 +40,7 @@ namespace JardiTips.Application.Features.Categories
             {
                 Name = command.Category.Name,
                 Description = command.Category.Description,
-                Type = command.Category.Type,
+                Type = CategoryType.User,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

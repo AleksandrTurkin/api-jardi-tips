@@ -16,7 +16,7 @@ public class DeleteCategoryCommandHandler(IUnitOfWork unitOfWork, IAuthContext a
         var userId = authContext.GetUserId();
 
         var repository = unitOfWork.Repository<CategoryEntity>();
-        var dbCategory = await repository.FirstOrDefaultAsync(x => x.Id == command.Id && x.OwnerUserId == userId, ct);
+        var dbCategory = await repository.FirstOrDefaultAsync(x => x.Id == command.Id && x.OwnerUserId == userId && x.Type == CategoryType.User, ct);
 
         if (dbCategory == null)
             return new ErrorDetail("category-not-found", "The category was not found.", ErrorType.NotFound);  
