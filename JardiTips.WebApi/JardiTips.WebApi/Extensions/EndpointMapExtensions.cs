@@ -6,6 +6,18 @@ namespace JardiTips.WebApi.Extensions;
 
 public static class EndpointMapExtensions
 {
+    public static RouteHandlerBuilder MapGetAnonymousQuery<TRequest, TResponse>(this IEndpointRouteBuilder builder, string pattern, Func<TRequest> create)
+        where TRequest : class
+        where TResponse : class
+        => builder.MapGet(pattern,
+            async (
+                [FromServices] IQueryHandler<TRequest, Result<TResponse>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await handler.HandleAsync(create(), cancellationToken);
+                return result.ToHttpResult();
+            }).AllowAnonymous();
+
     public static RouteHandlerBuilder MapPostCommand<TRequest, TDto>(this IEndpointRouteBuilder builder, string pattern, Func<TDto, TRequest> create)
         where TRequest : class
         => builder.MapPost(pattern,

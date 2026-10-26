@@ -42,5 +42,7 @@ namespace JardiTips.Application.DataAccess
         IQueryable<T> Where(Expression<Func<T, bool>> predicate);
 
         IQueryable<T> GetAll();
+
+        Task<IReadOnlyList<TResult>> GetListAsync<TResult>(IQueryable<T> query, Expression<Func<T, TResult>> selector, CancellationToken cancellationToken);
     }
 }

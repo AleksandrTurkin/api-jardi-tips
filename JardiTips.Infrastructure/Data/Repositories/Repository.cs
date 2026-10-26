@@ -154,5 +154,10 @@ namespace JardiTips.Infrastructure.Data.Repositories
         {
             return DbSet;
         }
+
+        public async Task<IReadOnlyList<TResult>> GetListAsync<TResult>(IQueryable<T> query, Expression<Func<T, TResult>> selector, CancellationToken cancellationToken)
+        {
+            return await query.AsNoTracking().Select(selector).ToListAsync(cancellationToken);
+        }
     }
 }
